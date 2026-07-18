@@ -1,115 +1,135 @@
 # Vocabulary — `rasa.domain.proverbs`
 
-The terms this domain uses, and the ones it refuses. Method terms only —
-the domain is subject-agnostic and carries no field vocabulary.
+Overlay terms only. The substrate's vocabulary is **inherited, not
+redefined** — see the inherited table below and
+`.claude/research-rules.md` for its definitions.
 
-Where a term is fully specified elsewhere, the framework chapter is
-authoritative and this entry is a pointer.
+Where a term is fully specified in a chapter, that chapter is
+authoritative and the entry here is a pointer.
 
 ---
 
-## Core structures
+## Inherited from `rasa.module.research` — do not redefine
 
-**Subject** — the single node type. Anything the corpus tracks: a topic,
-person, event, organization, place, work, or open thread. Kind is a
-`type:` field, not a folder. One Subject is one file under
-`content/subjects/`. → `framework/subject-model.md`
+These are the substrate's. This domain uses them exactly as the module
+defines them, and ships no synonym for any of them.
 
-**Dossier** — the file that holds a Subject. Used interchangeably with
-Subject in prose; strictly, the Subject is the thing tracked and the
-dossier is the record of it.
+| Term | What it is | Never call it |
+|---|---|---|
+| **topic** | one sustained investigation, a folder at `research/<topic-slug>/` | ~~Subject~~ |
+| **State of play** | the topic's distilled current picture (in its `README.md`) | ~~Standing~~ |
+| **findings** | durable claims + evidence + confidence (`findings.md`, `F1` form) | ~~Established~~ |
+| **open questions** | the live question list (`open-questions.md`) | — |
+| **log** | the dated record of what the researcher did (`log.md`) | — |
+| **sources** (local) | the topic's own reference shelf, local `[S1]` ids | — |
+| **lifecycle** | `open → active ⇄ dormant → concluded → archived` | — |
+| **INDEX** | `research/INDEX.md`, the registry of all topics | — |
+| **the three layers** | `@path` context pointers · `[[slug]]` topic graph · `tags:`/`related:` matching | — |
+| **`/xref`** | the module's skill that reconciles the three layers + back-references | — |
+| **the seam** | `.claude/research-canon.md` — where topics live, tag taxonomy, promotion target | — |
 
-**Id** — a Subject's stable kebab-case slug. Assigned once, **never
-changed, never recycled**. Links point at ids.
+The struck-through column is not decoration. Those were this domain's own
+v0.1.0 terms for the same structures, removed in v0.2.0.
 
-**Standing** — the dossier section holding the current picture, in
-prose. **Rewritten wholesale each pass**, never appended to. What you
-would say if asked about the subject today.
+## Added by this domain
 
-**Log** — the dossier section holding the dated record of how the
-picture moved. **Append-only: never rewritten, reordered, or pruned.**
+### Contested claims
 
-**Established** — sourced claims that hold. Every entry carries a source
-ref and a confidence marker.
+**contested** — a claim where sources genuinely disagree, held open with
+both sides and their evidence. Lives in `contested.md` inside the topic
+folder. → `framework/topic-overlay.md`
 
-**Contested** — sourced claims that conflict, recorded with both sides
-and their provenance. A first-class section, not an appendix.
+**contest** — one such disagreement, with an id (`C1`) and a
+`**Resolution:**` field that stays `(unresolved)` until it migrates to
+`findings.md`.
 
-**Open questions** — what is not known, phrased as answerable questions.
-Drives the next investigation pass.
+**superseded vs contested** — `Superseded-by:` (the substrate's) is for
+**corrected** claims, where you have warrant to name the wrong side.
+`contested.md` is for **unresolved** ones, where you do not.
 
-**Source record** — the registry entry for a source, under
-`content/sources/`, with a stable `src-NNNN` id. → `framework/provenance.md`
+### The revisit clock
 
-**Timeline entry** — a dated fact that relates one or more Subjects,
-under `content/timeline/`. A separate cross-cutting axis, not a
-Subject. → `framework/cross-linking.md`
+**cadence** — the revisit interval on a topic (`7d` | `30d` | `90d` |
+`365d` | `none`). Carries urgency. **Not a priority ranking.**
 
-## Properties
+**`last_swept`** — the date of the last longitudinal pass. Distinct from
+the substrate's `updated:`, which moves on any edit.
 
-**Status** — `active` | `dormant` | `closed` | `speculative`. Only
-`active` accrues cadence pressure. Closed subjects are never deleted.
+**due** — computed, never stored: `last_swept + cadence < today`.
 
-**Cadence** — the revisit interval (`7d` | `30d` | `90d` | `365d` |
-`none`). Carries urgency. **Not a priority ranking.**
+**overdue depth** — `today - (last_swept + cadence)`. The ordering key
+for the due queue, most overdue first.
 
-**Due** — computed, never stored: `last_swept + cadence < today`.
-
-**Overdue depth** — `today - (last_swept + cadence)`. The ordering key
-for the due queue.
-
-**Confidence** — `high` | `medium` | `low`, a calibrated statement about
-the state of the evidence for a claim (or for Standing). `low` is a
-normal resting state, not a defect.
-
-**Reliability** — a property of a *source*, distinct from the confidence
-of a *claim*. A high-reliability source can support a low-confidence
-claim. → `framework/provenance.md`
-
-## Operations
-
-**Investigate** — the *active* mode. Subject-first, question-driven;
-fans out to many sources. → `framework/investigation.md`
-
-**Ingest** — the *passive* mode. Source-first; one source fans out to
-many subjects. → `framework/ingestion.md`
-
-**Sweep** — the *longitudinal* mode. Revisits a bounded selection,
-advances `last_swept`, records change **and no-change**.
+**sweep** — the longitudinal pass over a bounded selection. Advances
+`last_swept` and writes a `log.md` line **even on no-change**.
 → `framework/longitudinal.md`
 
-**Track** — open a new Subject in the corpus.
+**no-change** — a real, recorded sweep result. The distinction between
+"checked, still true" and "unlooked-at for two years."
 
-**Dossier (verb)** — render the current state of a Subject. Read-only.
+**decay / demotion** — the ladder a repeatedly-unmoving topic descends:
+`7d → 30d → 90d → 365d → none`, then `status: dormant`.
 
-**Saturation** — the investigation stopping heuristic: consecutive
-search angles returning no newly-registrable sources.
+### Provenance
 
-**Routing** — deciding which Subjects a claim from an ingested source
-belongs to. A claim touching N Subjects is recorded in all N.
+**`src-NNNN`** — a stable corpus-wide source id. Assigned once, **never
+recycled**. Lives in `research/sources/`. → `framework/provenance.md`
 
-**Reconciliation** — folding a new claim against existing Established
-and Contested entries. A contradiction moves a claim to Contested; it
-never overwrites.
+**the join key** — the role `src-NNNN` plays: a topic's local `[S1]`
+stays the citation; the global id is what lets two topics be seen to rest
+on the same evidence.
 
-**Hub** — a Subject that too many others link to, losing discriminating
-power. Split it. → `framework/cross-linking.md`
+**reliability** — a property of a **source**. Distinct from the
+substrate's **confidence**, which is a property of a **claim**. A
+high-reliability source can support a low-confidence claim; three
+independent low-reliability sources can support a high-confidence one.
+
+**capture / the vanished-page test** — retrieved date plus enough excerpt
+to reconstruct the claim if the page disappears.
+
+### The timeline axis
+
+**timeline entry** — a dated fact relating N topics and owned by none, at
+`research/timeline/`. Records **what happened**, as opposed to `log.md`,
+which records **what the researcher did**.
+→ `framework/timeline-axis.md`
+
+**`date_precision`** — `day` | `month` | `year` | `circa`. `year` is
+truncated (the year is known, the day is not); `circa` is estimated (the
+year itself is uncertain).
+
+### Modes
+
+**investigate** — the ACTIVE mode. Topic-first, question-driven; fans out
+to many sources. → `framework/investigation.md`
+
+**ingest** — the PASSIVE mode. Source-first; one source fans out to many
+topics. Does **not** advance `last_swept`.
+→ `framework/ingestion.md`
+
+**dossier** — render a topic's current state. Read-only.
+
+**saturation** — the investigation stopping heuristic: consecutive search
+angles returning no newly-registrable sources.
+
+**routing** — deciding which topics a claim from an ingested source
+belongs to. A claim touching N topics is recorded in all N.
 
 ## Terms this domain refuses
 
 | Refused | Use instead | Why |
 |---|---|---|
 | *priority*, *importance* | `cadence` | Two urgency fields drift apart immediately. |
-| *owner*, *assignee* | (nothing) | Single-researcher corpus by design. |
-| typed edges (`caused_by`, `employed_by`) | flat `links:` + sourced prose in Standing | Edge vocabularies rot and force premature commitment; a typed edge is an unsourced claim in frontmatter. |
-| *archive* | `status: dormant` / `closed` | Nothing is removed from the corpus; it changes status. |
-| *delete a subject* | `status: closed` + reason | Dead ends are findings. |
-| *summary* (auto-generated) | Standing (written) | Standing is authored synthesis, not derivation. |
-| *note* (subject-less) | a Subject | A note with no subject means a Subject is missing. |
+| a `due:` or `stale:` field | compute it | A stored flag rots the first time nobody clears it. |
+| a second confidence scale | the substrate's `**Confidence:**` | One claim, one confidence. Reliability is a separate axis on the *source*. |
+| a second index | `research/INDEX.md` | The substrate owns the registry. |
+| a second link syntax | `@path` / `[[slug]]` / `tags:` | The substrate owns linking; `/xref` reconciles it. |
+| a topic-opening skill | `/research new` | Duplicating it is the v0.1.0 mistake. |
+| *archive* (as an action) | `status:` transition | The substrate's lifecycle already has it. |
 
 ## Inherited substrate vocabulary
 
-The RasaOS-level terms (Element, `rasa.json`, Connection Contract,
-install vs pull, seed/) are defined in canon and are **not** redefined
-here. The forbidden legacy terms (kit, MANIFEST.json, bootstrap/,
-foundation.json) are forbidden in this Element too.
+RasaOS-level terms (Element, `rasa.json`, Connection Contract, install vs
+pull, `seed/`) are defined in canon and not redefined here. The forbidden
+legacy terms (kit, MANIFEST.json, bootstrap/, foundation.json) are
+forbidden in this Element too.

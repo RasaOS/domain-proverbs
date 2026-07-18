@@ -1,117 +1,127 @@
 # PHILOSOPHY — `rasa.domain.proverbs`
 
-The stance this domain takes. Read before authoring content or invoking
-any of its skills; the skills enforce what follows.
+The stance this domain takes. Read `framework/topic-overlay.md` next; it
+turns this into structure.
 
 ---
 
 ## What this domain is
 
-A **research instrument for the long run**. It exists to track an
-open-ended and growing set of subjects — topics, people, events,
-organizations — across years, without the corpus degrading as it grows.
+The **epistemic and longitudinal discipline layer** over
+`rasa.module.research`.
+
+It is not a research system. `rasa.module.research` is the research
+system: it owns topics, their folder shape, the lifecycle, the index, and
+the linking layers. This domain requires it and adds the four things it
+has no equivalent for — held-open disagreement, a revisit clock, a
+corpus-wide source registry, and a dated timeline axis.
 
 It is **subject-agnostic**. It carries no opinion about what is worth
-researching. The method is the content; the subjects are supplied.
-This is the same posture `rasa.domain.writer` takes toward stories and
-`rasa.domain.code` takes toward codebases.
+researching. The discipline is the content; the subjects are supplied.
 
-## The five tenets
+## Why a layer and not a system
 
-### 1. The record is immutable; the picture is not.
+v0.1.0 of this domain was a system. It defined its own file-per-subject
+structure, its own current-picture section, its own claims file, its own
+log — every one of which already existed in `rasa.module.research` under
+a different name. The overlap was found after that version shipped.
 
-Every dossier separates a **rewritten synthesis** (what is believed
-now) from an **append-only log** (how the belief moved and when).
-Neither can do the other's job. A corpus that only appends becomes
-unreadable; a corpus that only rewrites loses the ability to audit its
-own history. Both layers, always, in every subject.
+The lesson is recorded here rather than quietly fixed, because it is the
+governing constraint on everything that follows: **when the substrate
+already names a thing, use its name.** A second vocabulary for one
+structure is not a richer model, it is drift, and it costs most at the
+moment two deployments have to be reconciled.
 
-This is the load-bearing decision of the whole domain. See
-`framework/subject-model.md`.
+So: a topic is a topic. Its current picture is `## State of play`. Its
+durable claims are findings. This domain introduces no synonyms.
 
-### 2. A claim without provenance is not a claim.
+## The four tenets
 
-Anything asserted in `## Established` carries a source reference and a
-confidence marker. Synthesis without citation lives in `## Standing`,
-clearly marked as synthesis. Suspicion without evidence lives in
-`## Open questions`. There is no fourth place for an unsourced
-assertion to hide, and the sweep will find it if one is smuggled in.
+Each governs one addition, and each exists because the substrate is
+silent on it — not because a different flavour was preferred.
 
-### 3. Disagreement is data, not noise.
+### 1. Disagreement is data, not noise.
 
-`## Contested` is a first-class section. When sources conflict, both
-sides are recorded with their provenance and the conflict is left
-standing. Resolving a contested claim by quietly picking the more
-convenient source is the single most damaging thing that can be done to
-a long-running corpus, because the error becomes invisible and
-load-bearing. If a contest resolves, it resolves explicitly, with the
-resolution recorded in the Log.
+`contested.md` holds claims where sources genuinely conflict, both sides
+with their provenance, indefinitely.
 
-### 4. Dead ends are findings.
+The substrate resolves conflict with `Superseded-by:`— one claim replaces
+another. That is right for *corrected* claims and wrong for *unresolved*
+ones, because it forces a winner at the moment you have least warrant to
+pick one. Silently resolving a contest by adopting the more convenient
+source is the most damaging single act available in a long-running
+corpus: the error becomes invisible, and everything built on it inherits
+the mistake with no trace back.
 
-A subject that turns out to be nothing gets `status: closed` with the
-reason written down — never deleted. The purpose is to stop the same
-dead end being re-explored in eighteen months. This is the corpus-level
-form of the working principle that failures get documented so they
-aren't re-litigated.
+### 2. A picture without a date is not a status.
 
-### 5. Calibrate, or say you don't know.
+`status: active` says a topic is live. It never says when the topic was
+last actually looked at. Those are different facts and only one of them
+was recorded.
 
-Confidence markers are honest or they are worthless. `low` is a normal
-resting state for a well-tended subject. "I don't know" is a complete
-and acceptable answer for any field, recorded as such. The instrument
-must never manufacture a confident picture to appear productive — a
-thin Standing section with three open questions is a better artifact
-than a fluent paragraph resting on nothing.
+`cadence:` and `last_swept:` close the gap, and the rule that makes them
+worth anything is that **a sweep records no-change**. `last_swept`
+advances and `log.md` gets a line even when nothing moved — because
+otherwise "checked, still true" and "nobody has looked at this in two
+years" are the same state on disk. This is the difference between a
+research instrument and an archive.
 
-## Three modes, one corpus
+### 3. Evidence is corpus-wide, not topic-local.
 
-The domain runs in three modes against the same subject files. They are
-not separate systems.
+The same source routinely bears on several topics. A topic-local `[S1]`
+cannot express that a claim in one topic and a claim in another rest on
+the *same* evidence, so it cannot answer "what else did this source
+support?" or "what falls if this source is discredited?"
 
-| Mode | Skill | Direction | Question it answers |
-|---|---|---|---|
-| **Active** | `/investigate` | pulls from outside | *What can I find out about this?* |
-| **Passive** | `/ingest` | pushes from supplied material | *What does this source tell me, and about which subjects?* |
-| **Longitudinal** | `/sweep` | revisits what's already here | *What changed, what went stale, what needs another look?* |
+A stable `src-NNNN` registry answers both. It coexists with the local
+shelf rather than replacing it — the local id stays the citation, the
+global id is the join key. And reliability is tracked as a property of
+the *source*, distinct from confidence in a *claim*, because one number
+cannot say that three independent weak sources agreeing is stronger than
+one strong source mentioning something in passing.
 
-Active research fills a subject. Passive ingestion routes external
-material into the subjects it touches — one source usually updates
-several. Longitudinal sweeps are what make the corpus an *ongoing*
-instrument rather than a pile of one-time write-ups; without a sweep
-discipline, a research corpus silently becomes an archive.
+### 4. What happened is not what the researcher did.
+
+`log.md` is a record of the investigation. It is not a record of the
+world. Conflating them means a corpus can tell you when it learned
+something but never when the thing occurred.
+
+A timeline entry is a dated fact relating several topics and owned by
+none of them.
+
+## Two standing commitments
+
+**Stay additive.** A topic carrying this domain's fields is still a valid
+`module.research` topic. Drop this domain and every topic survives
+intact; only sweeping stops. A layer that captures its substrate is a
+fork wearing a dependency, and this one must never become that.
+
+**Calibrate, or say you don't know.** Confidence and reliability markers
+are honest or worthless. "Nothing found" is a real result and gets
+recorded as such — an empty pass writes what was searched and when, and
+leaves `## State of play` untouched. A thin picture with three open
+questions is a better artifact than a fluent paragraph resting on
+nothing, and it is the only one of the two that can later be shown wrong.
 
 ## What "agnostic" commits us to
 
-- **No subject content ships with this Element.** The Element ships the
-  method, the templates, and the machinery. `content/subjects/` ships
-  empty except for its template and README.
-- **No domain vocabulary about any field.** The vocabulary covers the
-  research method only — Subject, Standing, Log, sweep, cadence,
-  provenance. Nothing about law, physics, sport, or any other vertical.
-- **Nothing assumes a source type.** Web pages, PDFs, interviews,
-  personal notes, and datasets are all just sources with provenance.
-- **The corpus is portable.** A subjects tree written under this method
-  is plain markdown with YAML frontmatter and no tool lock-in. If the
-  machinery disappears, the research survives.
+- **No subject content ships.** The Element carries discipline,
+  templates, and machinery. The corpus is the deployment's.
+- **No field vocabulary.** Overlay terms only, and inherited substrate
+  terms are pointed at rather than redefined.
+- **Nothing assumes a source type.** Pages, PDFs, interviews, notes, and
+  datasets are all sources with provenance.
+- **The corpus stays portable.** Plain markdown with YAML frontmatter, on
+  top of a substrate that is itself plain markdown. If the machinery
+  disappears, the research survives.
 
-## The scaling claim, stated so it can fail
+## The claim, stated so it can fail
 
-This domain makes one falsifiable claim: **a corpus built this way stays
-workable as subject count grows, because the synthesis layer is bounded
-while only the record layer grows.**
+**A corpus under this overlay can answer, for any topic, both "what do we
+currently believe" and "when was that last actually checked" — in bounded
+time, however long the corpus has been running.**
 
-The test: reading the current state of N subjects should cost O(N) short
-paragraphs, independent of how long each has been tracked. If Standing
-sections are creeping past a few paragraphs, or if answering "what do we
-know about X" requires reading X's Log, the method is failing and the
-fix is structural — split the subject, or tighten the rewrite
-discipline — not more prose.
-
-## On the name
-
-`proverbs` is a codename, not a subject. It carries no commitment to
-proverbs as a field of study. The fitting reading, if one is wanted: a
-proverb is a durable claim distilled from long accumulated
-observation — which is what a well-tended `## Standing` section is.
-Nothing in the method depends on this.
+The test: pick any topic. If answering the first question requires
+reading `log.md`, the substrate's rewrite discipline has failed. If the
+second question has no answer better than "sometime after `updated:`",
+the clock has failed. Either way the fix is structural, not more prose.

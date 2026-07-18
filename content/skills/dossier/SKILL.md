@@ -1,135 +1,161 @@
 ---
 name: dossier
-description: Render the current state of a tracked subject, or a brief across several — triggered by "/dossier", "what do we know about X", "show me the subject", "brief me on X", "where does X stand", "brief me on everything tagged Y". READ-ONLY — it reads content/subjects/*.md and writes nothing, ever. Answers from Standing plus Open questions plus Contested; it never answers a current-state question by dumping the Log. Always shows confidence, always flags claims sitting in Contested rather than presenting a false-settled picture, and always reports staleness (last_swept against cadence) so the reader knows how much to trust what they are being told. Can render a multi-subject brief over a tag or a link neighbourhood.
+description: Render what is currently known about a research topic, or a brief across several — triggered by "/dossier", "what do we know about X", "brief me on X", "show me the topic", "where does X stand", "brief me on everything tagged Y". READ-ONLY — it reads the topic folder and writes nothing, ever. Answers from the README's State of play plus open-questions.md plus contested.md; it never answers a current-state question by dumping log.md. Always reports staleness (last_swept against cadence) before the content, always flags contested claims rather than presenting a false-settled picture, and can include a topic's timeline slice.
 ---
 
-# /dossier — Read the current state of a subject
+# /dossier — What do we know about X
 
-Answer "what do we know about X" from the synthesis layer of X's
-dossier. The whole point of the Subject model is that this question
-is answerable in a few short paragraphs no matter how long the
-subject has been tracked; this skill is where that claim gets tested.
+Answer "what do we know about X" from a topic's synthesis layer. The
+whole point of the overlay is that this question is answerable in a
+few short paragraphs no matter how long the topic has been tracked;
+this skill is where that claim gets tested.
 
-If answering required reading the Log, the method is failing — say so
-rather than working around it.
+If answering required reading `log.md`, the method is failing — say
+so rather than working around it.
 
 ## Behavior contract
 
-- **READ-ONLY. This skill writes nothing.** No file under
-  `content/subjects/` is created, edited, or touched. Not to fix a
-  typo, not to advance `last_swept`, not to tidy a section it thinks
-  is malformed. Problems found while reading are reported to the
-  user, and fixing them is `/sweep`'s job.
-- **Answers from Standing, Open questions, and Contested.** Those
-  three sections are the current picture. `## Established` is drawn on
-  for specific sourced claims when the question calls for them.
-- **Never answers a current-state question by dumping the Log.** The
-  Log is history, not state. It is read only when the user asks a
-  historical question — "how did this change", "when did we first
-  think X", "what did the last pass do" — and then it is read as
-  history and labelled as such.
-- **Always reports confidence.** The frontmatter `confidence:` value
-  is shown with the brief, not buried. `low` is reported plainly and
-  without apology.
-- **Always surfaces staleness.** `last_swept` measured against
-  `cadence` determines whether the brief is current or overdue, and
-  by how much. A reader who is not told the picture is nine months
-  past its cadence has been misled by omission.
-- **Never presents a contested claim as settled.** If it is in
-  `## Contested`, it is rendered as contested, with both sides and
-  their sources. Picking the more convenient side to give a cleaner
-  answer is the single most damaging thing this skill could do.
-- **Reports gaps as gaps.** An empty Standing is reported as empty,
-  not filled in from background knowledge. A subject that has never
-  had a pass is described as one.
+- **READ-ONLY. This skill writes nothing, ever.** No file under the
+  research root is created, edited, or touched. Not to fix a typo,
+  not to advance `last_swept`, not to tidy a malformed section, not
+  to add a missing `[[link]]` it noticed. Problems found while
+  reading are *reported*; fixing them is `/sweep`'s job. There is no
+  write path in this skill and none may be added.
+- **Answers from `## State of play`, `open-questions.md`, and
+  `contested.md`.** Those three are the current picture.
+  `findings.md` is drawn on for specific sourced claims when the
+  question calls for one.
+- **Never reconstructs current state from `log.md`.** The log records
+  what the researcher did, not what is currently believed. Reading it
+  to answer a current-state question is the exact failure mode the
+  mutable/immutable split exists to prevent, and doing it here hides
+  the fact that a topic needs a sweep. The log is read only for an
+  explicitly historical question — "how did this change", "when did
+  we first think X", "what did the last pass do" — and is labelled as
+  history when it is.
+- **Always surfaces staleness, up front.** `last_swept` measured
+  against `cadence` decides how much the picture is worth, and the
+  reader is told before they read it. A reader not told the picture
+  is nine months past its cadence has been misled by omission.
+- **Never presents a contested claim as settled.** Anything in
+  `contested.md` is rendered as an open disagreement, with both sides
+  and both source ids. Picking the more convenient side for a cleaner
+  brief is the single most damaging thing this skill could do.
+- **Reports gaps as gaps.** An empty `## State of play` is reported
+  as empty, never filled in from background knowledge. A topic that
+  has never had a pass is described as one.
+- **Cites locations.** Every claim names the file it came from, so
+  the user can jump to it.
 
 ## Process
 
-1. **Resolve the selection.** One subject id or title; or a tag; or a
-   link neighbourhood ("X and everything it links to"); or a filter
-   over frontmatter (all `status: active`, all overdue). Ambiguous
-   title matches are listed for the user to pick from — never guessed.
-2. **Read frontmatter first.** `status`, `confidence`, `cadence`,
-   `last_swept`, `opened`, `type`, `links`, `tags`. Compute staleness:
-   days since `last_swept` against `cadence`; `cadence: none` and
-   `status: dormant`/`closed` are never stale.
-3. **Read `## Standing`.** This is the answer to "what do we know".
-   Render it as-is or condensed to the user's altitude — never
-   embellished, never extended with material that is not in the file.
-4. **Read `## Open questions`.** What is not known is part of the
+1. **Resolve the selection.** One topic slug or title; or a tag; or
+   a `related:` neighbourhood ("X and everything it relates to"); or
+   a frontmatter filter (all `status: active`, all overdue). Read
+   `research/INDEX.md` for the roster. Ambiguous title matches are
+   listed for the user to pick from, never guessed. For anything
+   beyond one hop of graph traversal — back-references, tag-match
+   discovery, the full map — **defer to `/xref`**; do not
+   reimplement it here.
+2. **Read the topic `README.md` frontmatter first.** `status`,
+   `tags`, `related`, `created`, `updated`, `cadence`, `last_swept`.
+   Compute staleness: `last_swept + cadence` against today.
+   `cadence: none` and any status other than `active` are never
+   stale. Overdue depth is `today - (last_swept + cadence)`.
+3. **Read `## State of play`.** This is the answer to "what do we
+   know". Render it as-is or condensed to the user's altitude —
+   never embellished, never extended with material not in the file.
+4. **Read `open-questions.md`.** What is not known is part of the
    current state, not an appendix to it.
-5. **Read `## Contested`.** Anything here is rendered as an open
-   disagreement with both sides and both source ids.
-6. **Pull from `## Established` only as needed** — when the user asked
-   something specific enough that a sourced claim answers it. Cite the
-   source id with the claim; never restate an Established claim
-   without its ref.
-7. **Assemble the brief** per the output shape below.
-8. **Report structural problems, don't fix them.** Missing required
-   frontmatter, absent sections, an unsourced claim sitting in
-   Established, a one-directional link — name them and point at
-   `/sweep`.
+5. **Read `contested.md`.** Everything in it is rendered as an open
+   disagreement with both sides and their `src-NNNN` ids.
+6. **Pull from `findings.md` only as needed** — when the question is
+   specific enough that a sourced claim answers it. Cite the source
+   with the claim; never restate a finding without its ref.
+7. **Add the timeline slice when asked, or when the question is
+   historical.** Every entry in `research/timeline/` whose `topics:`
+   names this topic, in filename order (see
+   `framework/timeline-axis.md`). This is a query run now, not a
+   cached list read out of the topic; if the topic carries a pointer
+   list that disagrees with the entries, the entries win and the
+   disagreement is reported.
+8. **Assemble the brief** per the output shape below.
+9. **Report structural problems, don't fix them.** Missing
+   frontmatter, an absent section, a claim in `findings.md` with no
+   evidence, a `related:` entry with no `[[link]]` — name them and
+   point at `/sweep` (or `/xref` for graph health).
 
 ## Output shape
 
-Single subject:
+Single topic:
 
 ```
-<Title>  ·  <type> · <status> · confidence: <c>
+<Title>  ·  <status> · tags: <…>
 Swept <date> (<n>d ago, cadence <cadence>) — <current | overdue by Nd>
 
-STANDING
+STATE OF PLAY
 <the current picture>
 
 OPEN QUESTIONS
-- <...>
+- <…>
 
 CONTESTED
 - <claim> — side A [src-…] vs side B [src-…]
 
-LINKS  <ids>
+TIMELINE  (if requested)
+- <date> — <title>  [entry id]
+
+RELATED  [[slug]] …
 ```
 
 Order is deliberate: status and staleness before content, so the
 reader knows how much weight the picture carries before reading it.
 Contested is never below the fold.
 
-## Multi-subject briefs
+## Multi-topic briefs
 
-For a tag, a link neighbourhood, or a status filter: render one short
-block per subject — title, status, confidence, staleness, and the
-Standing section condensed to a line or two — then, across the whole
-selection, list the contested claims and the open questions.
+For a tag, a `related:` neighbourhood, or a status filter: one short
+block per topic — title, status, staleness, and the state of play
+condensed to a line or two — then, across the whole selection, the
+contested claims and the open questions.
 
-The cost of the brief is one short block per subject, and it does not
-grow with how long any subject has been tracked. If a multi-subject
-brief is unreadable, the individual Standing sections have crept and
-the fix is structural — split subjects, tighten the rewrite
-discipline — not a shorter rendering here. Say so when it happens.
+The cost is one short block per topic and it does not grow with how
+long any topic has been tracked. If a multi-topic brief is
+unreadable, the individual `## State of play` sections have crept and
+the fix is structural — split topics, tighten the rewrite discipline
+— not a shorter rendering here. Say so when it happens.
 
 ## What NOT to do
 
-- **Don't write.** Anything. This skill has no write path.
-- **Don't reconstruct current state from the Log.** If Standing is
-  thin, report that Standing is thin. Reading five years of Log to
-  synthesise a picture is exactly the failure mode the two-layer
-  model exists to prevent, and doing it here hides the fact that a
-  subject needs a sweep.
-- **Don't resolve a contest in the rendering.** Not by picking a side,
-  not by picking the newer source, not by mentioning only one side
-  because the brief is meant to be short.
-- **Don't fill an empty section from general knowledge.** Empty is the
-  reported answer.
-- **Don't omit confidence or staleness** because they make the brief
-  look weak. That information is the brief's calibration.
+- **Don't write.** Anything. Including "harmless" fixes.
+- **Don't reconstruct current state from `log.md`.** If the state of
+  play is thin, report that it is thin. Reading five years of log to
+  synthesise a picture is the precise failure this model exists to
+  prevent.
+- **Don't resolve a contest in the rendering.** Not by picking a
+  side, not by preferring the newer source, not by mentioning only
+  one side because the brief is meant to be short.
+- **Don't bury staleness** at the end, or omit it because the topic
+  is only slightly overdue.
+- **Don't fill an empty section from background knowledge.** Empty is
+  the reported answer. If the corpus does not say it, the brief does
+  not say it.
 - **Don't quietly widen the selection.** If the requested tag matches
   nothing, say it matches nothing.
+- **Don't reimplement `/xref`.** Back-references, tag-match
+  discovery, and the graph map are the substrate's. Read
+  `research/INDEX.md` and a topic's own `related:`; for anything
+  further, hand off.
+- **Don't maintain a rival index.** `research/INDEX.md` is the
+  registry; this skill reads it and never writes it.
 
 ## Done when
 
-The user has the current picture for the requested subject or
-selection, drawn from Standing, Open questions and Contested;
-confidence and staleness are stated alongside it; every contested
-claim is shown as contested with both sides; every Established claim
-quoted carries its source id; any structural problems found are
-reported with a pointer to `/sweep`; and no file on disk changed.
+The user has the current picture for the requested topic or
+selection, drawn from `## State of play`, `open-questions.md`, and
+`contested.md`; staleness is stated ahead of the content; every
+contested claim is shown as contested with both sides; every finding
+quoted carries its source id; any timeline slice was computed from
+`research/timeline/` rather than read from a cache; structural
+problems found are reported with a pointer to `/sweep` or `/xref`;
+and no file on disk changed.
