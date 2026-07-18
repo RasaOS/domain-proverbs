@@ -1,0 +1,216 @@
+#!/usr/bin/env python3
+"""
+bin/check-shape — enforce the canonical authoring shape of content/.
+
+The skeletons under content/templates/ are the SHAPE every authored
+artifact follows; this script is the teeth. Two complementary gates:
+  bin/check-manifest — the INVENTORY (everything committed is registered)
+  bin/check-shape    — the STRUCTURE (everything authored follows the template)
+
+Checks (only what exists — a structural-shape fork with no skills/
+passes clean; see content/SHAPE.md):
+
+  skills   content/skills/<name>/SKILL.md
+           - every skill dir contains a SKILL.md
+           - frontmatter block with name: + description:
+           - name matches the folder name
+           - description is substantive (no TODO placeholder, not stub-short)
+           - required sections: ## Behavior contract, ## Process,
+             ## What NOT to do, ## Done when
+             (extra sections — Output shape, When NOT to use, … — are fine)
+
+  rules    content/rules/*.md  (README.md exempt)
+           - filename matches <topic>-rules.md
+           - has an H1 title that isn't still the template's TODO
+
+  agents   content/agents/*.md  (README.md exempt)
+           - frontmatter with name:, description:, tools:
+           - name matches the filename stem
+
+  registry (warning only) if rasa.json's content/skills/ entry carries an
+           enumerating note, every skill dir should be named in it.
+
+content/templates/ itself is exempt — it holds the TODO skeletons.
+
+Usage: bin/check-shape [element-root]   (default: this script's repo)
+
+Cross-platform: pure Python standard library. Run it before tagging an
+Element release, alongside bin/check-manifest; wire both into CI.
+
+Exit: 0 if content/ conforms to the templated shape; 1 otherwise.
+"""
+
+import json
+import os
+import re
+import sys
+
+REPO_ROOT = (
+    os.path.abspath(sys.argv[1])
+    if len(sys.argv) > 1
+    else os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+)
+CONTENT = os.path.join(REPO_ROOT, "content")
+
+errors = []
+warnings = []
+checked = {"skills": 0, "rules": 0, "agents": 0}
+
+REQUIRED_SKILL_SECTIONS = (
+    "## Behavior contract",
+    "## Process",
+    "## What NOT to do",
+    "## Done when",
+)
+
+
+def read_frontmatter(path):
+    """Return (frontmatter-dict-or-None, body). Stdlib-only, tolerant of
+    two-space continuation lines for long values."""
+    with open(path, encoding="utf-8", errors="replace") as f:
+        text = f.read()
+    if not text.startswith("---\n"):
+        return None, text
+    end = text.find("\n---", 4)
+    if end == -1:
+        return None, text
+    fm, key = {}, None
+    for line in text[4:end].splitlines():
+        m = re.match(r"^([A-Za-z_][A-Za-z0-9_-]*):\s*(.*)$", line)
+        if m:
+            key = m.group(1)
+            fm[key] = m.group(2).strip()
+        elif key is not None and (line.startswith("  ") or line.startswith("\t")):
+            fm[key] = (fm[key] + " " + line.strip()).strip()
+    return fm, text[end + 4 :]
+
+
+def rel(path):
+    return os.path.relpath(path, REPO_ROOT)
+
+
+# ── skills ──────────────────────────────────────────────────────────────────
+skills_dir = os.path.join(CONTENT, "skills")
+if os.path.isdir(skills_dir):
+    for entry in sorted(os.listdir(skills_dir)):
+        skill_path = os.path.join(skills_dir, entry)
+        if not os.path.isdir(skill_path):
+            continue
+        checked["skills"] += 1
+        skill_md = os.path.join(skill_path, "SKILL.md")
+        if not os.path.isfile(skill_md):
+            errors.append("%s: skill dir has no SKILL.md" % rel(skill_path))
+            continue
+        fm, body = read_frontmatter(skill_md)
+        if fm is None:
+            errors.append("%s: no frontmatter block (---)" % rel(skill_md))
+            continue
+        name = fm.get("name", "")
+        desc = fm.get("description", "")
+        if not name:
+            errors.append("%s: frontmatter missing name:" % rel(skill_md))
+        elif name != entry:
+            errors.append(
+                "%s: frontmatter name '%s' != folder '%s'" % (rel(skill_md), name, entry)
+            )
+        if not desc:
+            errors.append("%s: frontmatter missing description:" % rel(skill_md))
+        elif desc.startswith("TODO"):
+            # The template's placeholder starts with TODO; prose that merely
+            # mentions the word (e.g. "writes TODO markers") is fine.
+            errors.append("%s: description still starts with TODO — unfilled template" % rel(skill_md))
+        elif len(desc) < 60:
+            errors.append(
+                "%s: description too short (%d chars) — it is the trigger surface, front-load concrete phrases"
+                % (rel(skill_md), len(desc))
+            )
+        # Strip fenced code blocks first — a heading quoted inside a
+        # ``` example must not satisfy the section requirement.
+        prose = re.sub(r"(?ms)^```.*?^```[ \t]*$", "", body)
+        for section in REQUIRED_SKILL_SECTIONS:
+            if not re.search(r"(?m)^%s\s*$" % re.escape(section), prose):
+                errors.append("%s: missing required section '%s'" % (rel(skill_md), section))
+
+# ── rules ───────────────────────────────────────────────────────────────────
+rules_dir = os.path.join(CONTENT, "rules")
+if os.path.isdir(rules_dir):
+    for entry in sorted(os.listdir(rules_dir)):
+        if not entry.endswith(".md") or entry == "README.md":
+            continue
+        checked["rules"] += 1
+        rule_path = os.path.join(rules_dir, entry)
+        if not re.match(r"^[a-z0-9]+(-[a-z0-9]+)*-rules\.md$", entry):
+            errors.append("%s: rule files are named <topic>-rules.md" % rel(rule_path))
+        with open(rule_path, encoding="utf-8", errors="replace") as f:
+            text = f.read()
+        if not re.search(r"(?m)^# \S", text):
+            errors.append("%s: missing H1 title" % rel(rule_path))
+        elif re.search(r"(?m)^# TODO\b", text):
+            errors.append("%s: H1 still starts with TODO — unfilled template" % rel(rule_path))
+
+# ── agents ──────────────────────────────────────────────────────────────────
+agents_dir = os.path.join(CONTENT, "agents")
+if os.path.isdir(agents_dir):
+    for entry in sorted(os.listdir(agents_dir)):
+        if not entry.endswith(".md") or entry == "README.md":
+            continue
+        checked["agents"] += 1
+        agent_path = os.path.join(agents_dir, entry)
+        fm, _ = read_frontmatter(agent_path)
+        if fm is None:
+            errors.append("%s: no frontmatter block (---)" % rel(agent_path))
+            continue
+        for k in ("name", "description", "tools"):
+            if not fm.get(k):
+                errors.append("%s: frontmatter missing %s:" % (rel(agent_path), k))
+        stem = entry[:-3]
+        if fm.get("name") and fm["name"] != stem:
+            errors.append(
+                "%s: frontmatter name '%s' != file '%s'" % (rel(agent_path), fm["name"], stem)
+            )
+        if fm.get("description", "").startswith("TODO"):
+            errors.append("%s: description still starts with TODO — unfilled template" % rel(agent_path))
+
+# ── registry note (warning only) ────────────────────────────────────────────
+manifest = os.path.join(REPO_ROOT, "rasa.json")
+if os.path.isfile(manifest) and os.path.isdir(skills_dir):
+    try:
+        data = json.load(open(manifest, encoding="utf-8"))
+        note = ""
+        for f in data.get("element", {}).get("files", []):
+            if f.get("from") == "content/skills/":
+                note = f.get("note", "")
+        if note:
+            for entry in sorted(os.listdir(skills_dir)):
+                if os.path.isdir(os.path.join(skills_dir, entry)):
+                    # Hyphens count as word characters here — 'docs' must not
+                    # be satisfied by the substring inside 'update-docs'.
+                    if not re.search(r"(?<![\w-])%s(?![\w-])" % re.escape(entry), note):
+                        warnings.append(
+                            "rasa.json: content/skills/ note doesn't mention skill '%s'" % entry
+                        )
+    except (ValueError, OSError) as exc:
+        warnings.append("rasa.json unreadable for registry check: %s" % exc)
+
+# ── report ──────────────────────────────────────────────────────────────────
+print("bin/check-shape — content/ structural conformance\n")
+for w in warnings:
+    print("WARN %s" % w)
+if errors:
+    for e in errors:
+        print("ERR  %s" % e)
+    print(
+        "\nFAIL %d error(s)%s"
+        % (len(errors), ", %d warning(s)" % len(warnings) if warnings else "")
+    )
+    sys.exit(1)
+print(
+    "OK   content/ conforms to the templated shape."
+    "\n     %d skill(s), %d rule file(s), %d agent(s) checked%s."
+    % (
+        checked["skills"],
+        checked["rules"],
+        checked["agents"],
+        "; %d warning(s)" % len(warnings) if warnings else "",
+    )
+)

@@ -1,0 +1,14 @@
+---
+name: TODO-kebab-case-name
+description: TODO — when to dispatch this agent: the concrete conditions that should route a sub-task to it.
+tools: [Read, Grep, Glob]
+---
+
+TODO the agent's system prompt. Cover:
+
+- **Role** — the one responsibility this agent has (an agent that
+  reviews AND fixes AND reports is three agents).
+- **Return value** — its final message IS the return value; instruct it
+  to return raw, structured findings, not chat prose.
+- **Boundaries** — what it must never do. Keep `tools:` least-privilege
+  (a read-only reviewer gets no Write/Edit).

@@ -1,0 +1,143 @@
+{
+  "$schema": "https://rasa-os.github.io/schema/rasa.schema.v1.json",
+  "contract_version": "1.3.0",
+  "name": "rasa.domain.proverbs",
+  "version": "0.1.0",
+  "kind": "domain",
+  "aliases": [
+    "domain-proverbs"
+  ],
+  "description": "RasaOS Domain · Proverbs. A subject-agnostic research instrument for the long run: it tracks and manages an open-ended, growing set of subjects — topics, people, events, organizations, places, works, open threads — without the corpus degrading as it grows.\n\nOne generic Subject node type (kind is a `type:` field, not a folder) so reclassification never moves files or breaks links. Every dossier separates a rewritten synthesis (`## Standing` — what is believed now) from an append-only ledger (`## Log` — how the belief moved, and when). That mutable/immutable split is the load-bearing decision: the synthesis layer stays bounded while only the record layer grows, which is what lets the corpus scale to (n) subjects tracked across years and stay readable.\n\nThree modes over the same files: /investigate (active — subject-first, question-driven, fans out to many sources), /ingest (passive — source-first, one source fans out to many subjects), and /sweep (longitudinal — revisits a bounded selection, advances last_swept, and records no-change as a real result, which is the distinction between 'checked, still true' and 'nobody has looked at this in two years'). Plus /track to open a subject and /dossier to render current state read-only.\n\nProvenance is enforced, not encouraged: claims in `## Established` carry a source id and a calibrated confidence marker, conflicting sources are held open in `## Contested` rather than silently resolved, dead ends are closed with a reason rather than deleted, and 'nothing found' is recorded rather than replaced with plausible synthesis.\n\nShips zero subject content. The Element carries the method, the templates, and the machinery; subjects/, timeline/, and sources/ ship empty. The corpus it produces is plain markdown with YAML frontmatter and no tool lock-in.",
+  "source": {
+    "repo": "https://github.com/RasaOS/domain-proverbs",
+    "branch": "main"
+  },
+  "tier": "Pro",
+  "capabilities": [
+    "proverbs.subject-tracking",
+    "proverbs.dossier-synthesis",
+    "proverbs.active-investigation",
+    "proverbs.source-ingestion",
+    "proverbs.longitudinal-sweep",
+    "proverbs.provenance-discipline",
+    "proverbs.claim-reconciliation",
+    "proverbs.timeline-axis",
+    "proverbs.cross-linking",
+    "proverbs.corpus-health"
+  ],
+  "permissions": [
+    "fs:write",
+    "shell:exec",
+    "network:fetch"
+  ],
+  "requires": {},
+  "rasa": {
+    "role": "domain-element",
+    "shape_pattern": "hybrid",
+    "identity": {
+      "one_liner": "the RasaOS domain for long-running, subject-agnostic research — tracking a growing corpus of subjects with provenance, cross-links, and longitudinal revisits",
+      "role": "domain",
+      "subject": "research method (subject-agnostic)",
+      "goal": "keep an open-ended and growing body of tracked subjects honest and readable over years — bounded synthesis over an append-only record, every claim sourced and calibrated, disagreement held open, and every revisit dated whether or not anything changed"
+    },
+    "note": "Forked from domain-core v1.3.0. Hybrid shape (canon SHAPE pattern 3): structural corpus folders (subjects/, timeline/, sources/) + a toolkit layer (skills/, rules/). contract_version stays 1.3.0 — the last LOCKED + published contract (the element-contract mirror has no v1.4.0 tag); authored to current canon v1.4.0 rules (post-SA-023, seven kinds) but declaring 1.3.0 per the fleet-wide convention, which migrates together at the v1.4.0 lock via bin/lock-sequence, never per-element. v0.1.0 ships the method complete and the corpus empty: PHILOSOPHY (five tenets) + framework/ ×6 + vocabulary + five domain skills + research-rules, with subjects/timeline/sources carrying template + README only. The name 'proverbs' is a codename, not a subject commitment."
+  },
+  "element": {
+    "description": "Files mirrored into the install target per canon ELEMENT_CONTRACT.md §7. Subject content namespaces under .claude/proverbs/ per the domain convention; skills install to .claude/skills/ and rules flat to .claude/ per the domain-code precedent. content/templates/ stays opt-in — authoring-time skeletons validated by bin/check-shape, never auto-installed.",
+    "files": [
+      {
+        "from": "content/README.md",
+        "to": "content/README.md",
+        "policy": "opt-in",
+        "note": "Fork-side guide to what this Element ships — the hybrid split (structural corpus folders vs toolkit layer), the five domain skills, the knowledge layer, and the install shape. Authoring-side orientation, not consumer runtime content; the deployment-facing guidance lives in the per-folder READMEs under subjects/, timeline/, and sources/, which DO install."
+      },
+      {
+        "from": "content/PHILOSOPHY.md",
+        "to": ".claude/proverbs/PHILOSOPHY.md",
+        "policy": "file-replace",
+        "note": "The domain's stance: the five tenets (immutable record vs mutable picture; no claim without provenance; disagreement is data; dead ends are findings; calibrate or say you don't know), the three-mode table, what 'agnostic' commits the Element to, and the falsifiable scaling claim. Installs — the skills enforce this and a deployment needs to be able to read what it is being held to."
+      },
+      {
+        "from": "content/vocabulary.md",
+        "to": ".claude/proverbs/vocabulary.md",
+        "policy": "file-replace",
+        "note": "Method vocabulary only (Subject, Standing, Log, cadence, due, saturation, routing, reconciliation, hub) plus the refused-terms table (priority, owner, typed edges, archive, delete, auto-summary) and their replacements. Carries no field vocabulary — the domain is subject-agnostic. Inherited RasaOS substrate terms are defined in canon, not redefined here."
+      },
+      {
+        "from": "content/framework/",
+        "to": ".claude/proverbs/framework/",
+        "policy": "directory-mirror",
+        "note": "The six method chapters: subject-model.md (THE SPINE — the one node type, the seven sections, the mutable/immutable split and why it bounds the synthesis layer), provenance.md (src-NNNN registry, reliability-vs-confidence, citation form, link-rot excerpt rule, redistribution line), investigation.md (active mode — question-driven passes, four reconciliation cases, search angles, saturation, the anti-fabrication gate), ingestion.md (passive mode — source-first fan-out, claim routing, the new-subject threshold, fidelity rules), longitudinal.md (cadence + due arithmetic computed-never-stored, bounded selections, the no-change-is-recorded rule, health checks, decay demotion), cross-linking.md (untyped symmetric links and why typed edges are rejected, the timeline as a separate axis, link-vs-merge-vs-split, hub hygiene)."
+      },
+      {
+        "from": "content/subjects/",
+        "to": ".claude/proverbs/subjects/",
+        "policy": "directory-mirror",
+        "note": "THE CORPUS — one file per tracked Subject, named <id>.md. Ships EMPTY of subjects by design (this Element is subject-agnostic and carries no one's research); installs only _TEMPLATE.md and README.md so a fresh deployment inherits the shape and the discipline, then grows its own content. Subject ids are stable, never changed, never recycled — links point at them."
+      },
+      {
+        "from": "content/timeline/",
+        "to": ".claude/proverbs/timeline/",
+        "policy": "directory-mirror",
+        "note": "The cross-cutting dated axis — entries are dated facts that RELATE subjects (an event is an edge that no single subject owns), distinct from a `type: event` Subject, which is a research target with its own open questions. Both can coexist and reference each other. Zero-padded sort keys (1916-00-00-slug.md) so year-only entries don't sort wrong silently; date_precision carries day/month/year/circa. Ships empty + template + README."
+      },
+      {
+        "from": "content/sources/",
+        "to": ".claude/proverbs/sources/",
+        "policy": "directory-mirror",
+        "note": "The source registry — one record per source with a stable src-NNNN id, never recycled. Reliability is a property of the SOURCE, distinct from the confidence marker on a CLAIM. Key excerpts are captured because URLs die: retrieved-date plus enough excerpt to reconstruct the claim if the page vanishes. Third-party copyrighted material is registered by reference and short excerpt only, never bulk-copied. Ships empty + template + README."
+      },
+      {
+        "from": "content/skills/",
+        "to": ".claude/skills/",
+        "policy": "directory-mirror",
+        "note": "Five domain skills — track (open a Subject: collision-checked id, honestly-empty dossier, symmetric back-links), investigate (ACTIVE: reads Open questions first, reconciles contradictions into Contested rather than overwriting, stops on saturation, records empty passes), ingest (PASSIVE: source-first, routes each claim to every Subject it touches, proposes rather than sprawls new subjects), sweep (LONGITUDINAL: advances last_swept and writes a Log line even on no-change, reports health findings rather than auto-fixing), dossier (READ-ONLY: answers from Standing + Open questions + Contested, never by dumping the Log, and surfaces staleness). Plus the inherited Element-mechanics skills from domain-core — sync, promote, whoami, codify, new-skill, onboard, handoff, resume, update-docs; handoff + resume earn their place here more than in most domains because a research corpus spans many sessions."
+      },
+      {
+        "from": "content/rules/",
+        "to": ".claude/",
+        "policy": "directory-mirror",
+        "note": "research-rules.md — the domain gates (no unsourced claim in Established; the Log is append-only; Standing is rewritten wholesale; contested claims are never silently resolved; closed subjects are never deleted; ids are immutable; last_swept advances on every sweep including no-change; 'nothing found' is recorded, never replaced with plausible synthesis; excerpt-only for third-party material; confidence calibrated honestly) — plus the inherited universal rules (contract-rules, output-rules, authoring-rules) and README conventions. Rules install flat to .claude/ per the domain-code precedent."
+      },
+      {
+        "from": "content/templates/",
+        "to": "content/templates/",
+        "policy": "opt-in",
+        "note": "The enforced authoring skeletons (SKILL.md.template, rule.md.template, agent.md.template + README) validated by bin/check-shape. Authoring-time, not install-time: they guide authoring IN this Element, and the 'to' target is deliberately outside .claude/. Must never be flipped to auto-install. Distinct from the corpus templates (subjects/_TEMPLATE.md, timeline/_TEMPLATE.md, sources/_TEMPLATE.md), which DO install because a deployment authors against them daily."
+      },
+      {
+        "from": "content/agents/",
+        "to": ".claude/agents/",
+        "policy": "opt-in",
+        "note": "Subagent scaffold + README conventions. Ships no agents at v0.1.0. A plausible future addition is a parallel source-triage agent for wide investigation fan-out, but it isn't authored yet, so the entry stays opt-in rather than mirroring an empty directory."
+      }
+    ]
+  },
+  "seed": {
+    "description": "One-time files copied at install only. Per canon ELEMENT_CONTRACT.md §7.",
+    "files": [
+      {
+        "from": "seed/CLAUDE.md.template",
+        "to": "CLAUDE.md",
+        "policy": "skip-if-exists",
+        "note": "Per-project Claude session contract. Lives in install-target root; project-owned forever. Placeholder-free BY DESIGN: Element identity (name/version/SHA) lives in .claude/rasa.lock.json, the single live source of truth. A skip-if-exists file is never rewritten, so hardcoding identity here would go stale on the first Element update — deferring to the lockfile is the correct choice, not a gap. The template points sessions at /onboard, /resume, and /sync from the starter layer."
+      },
+      {
+        "from": "seed/rasa.lock.json.template",
+        "to": ".claude/rasa.lock.json",
+        "policy": "init-only-with-sha",
+        "note": "Stamped with the Element HEAD commit SHA at init time. Lockfile shape per canon Spec §6 (Connection Contract). Substitutes {{ELEMENT_NAME}}, {{ELEMENT_KIND}}, {{ELEMENT_VERSION}}, {{ELEMENT_REPO}}, {{ELEMENT_BRANCH}}, {{ELEMENT_SHA}}, {{TODAY}} placeholders via bin/init's init-only-with-sha handler."
+      },
+      {
+        "from": "seed/rasa-deployment.md.template",
+        "to": ".claude/rasa-deployment.md",
+        "policy": "skip-if-exists",
+        "note": "The DEPLOYMENT identity layer (canon SA-025) — project-owned, filled once: what THIS deployment researches and for whom. Skip-if-exists so it's never overwritten. The element-identity layer is the separate .claude/rasa-identity.md, which bin/init GENERATES fresh from rasa.identity on every install; /whoami composes the two."
+      }
+    ]
+  },
+  "scaffold": {
+    "description": "Empty directories created at init. The corpus folders arrive via element.files directory-mirror (they carry a template + README), so no additional empty scaffold is needed at v0.1.0.",
+    "directories": []
+  }
+}

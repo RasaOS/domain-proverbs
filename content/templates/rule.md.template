@@ -1,0 +1,18 @@
+<!-- Save as content/rules/<topic>-rules.md — one coherent topic per file. -->
+
+# TODO Topic Rules
+
+TODO one paragraph: what this file governs, and when a session should
+read it ("Read this file before/when …"). A rule file that covers
+everything gets read for nothing.
+
+## TODO rule group
+
+- **TODO state the rule.** TODO one line of why — a rule without its
+  rationale rots; the next reader can't tell a constraint from an
+  accident.
+- **TODO the next rule.** TODO why.
+
+## TODO another rule group (delete if one group is enough)
+
+- **TODO.** TODO why.

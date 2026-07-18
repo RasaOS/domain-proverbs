@@ -1,0 +1,33 @@
+---
+name: TODO-kebab-case-name
+description: TODO — what this skill does, when it triggers, and 3–5 concrete phrases the user would actually say — e.g. "/TODO-name", "TODO phrase", "TODO phrase". The router matches on this text; front-load the trigger phrases. Say whether it only reports, writes durable files, or edits source.
+---
+
+# /TODO-name — TODO one-line title
+
+TODO one paragraph: what this skill produces and the judgment it
+applies. Blunt and calibrated per `output-rules.md`.
+
+## Behavior contract
+
+- **TODO the hard rules.** What it always does, what it never does.
+- **TODO the consent model.** Report-only / writes files / edits source
+  — and what approval each requires.
+- **Never auto-commit.** Edits land in the working tree for the user's
+  review. (If the skill is strictly read-only, say that instead.)
+
+## Process
+
+1. TODO numbered steps — what the skill reads, in what order, and what
+   it emits.
+2. TODO.
+
+## What NOT to do
+
+- TODO the common wrong turns — the failure modes this skill must
+  refuse, stated concretely.
+
+## Done when
+
+TODO the observable definition of finished — what's true on disk or in
+the briefing when this skill has done its job.
