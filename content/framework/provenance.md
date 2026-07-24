@@ -132,15 +132,17 @@ the local ids.
 ## The source record
 
 Frontmatter on `research/sources/src-NNNN.md`. Every field except
-`tags:` is required; `author:` and `date:` take `unknown` when they
-genuinely are.
+`tags:` and `surfaced:` is required; `author:` and `date:` take
+`unknown` when they genuinely are, and `surfaced:` is omitted unless it
+applies.
 
 ```yaml
 ---
 id: src-0001              # stable; assigned once, never recycled
 title: Some Document      # human-facing; may be corrected freely
 author: Some Author       # person, org, or `unknown`
-date: 2019-04-11          # date the SOURCE was created/published
+date: 2019-04-11          # date the SOURCE was created/originated/published
+surfaced: unknown         # OPTIONAL — discovered/re-surfaced, when that ≠ date:
 kind: secondary           # see taxonomy below
 locator: https://…        # URL, DOI, ISBN, file path, or description
 retrieved: 2026-07-18     # date YOU fetched/read it — mandatory for URLs
@@ -160,6 +162,34 @@ evidential object from one retrieved in 2019.
 
 `added:` answers "when did this enter the corpus" — a question about the
 research, not about the source.
+
+### The three dates of a source
+
+A source can carry up to three meaningful dates, and they split along the
+same seam the timeline axis draws for everything else — *what happened in
+the world* versus *what the research did*:
+
+| field | what it dates | axis |
+|---|---|---|
+| `date:` | when the source was **created / originated** | the world (historical) |
+| `surfaced:` | when it was **discovered / re-surfaced** into availability | the world (historical) |
+| `retrieved:` / `added:` | when **we** read it / registered it | the research (our time) |
+
+`surfaced:` exists because a source's making and its reappearance are
+often separated by a long gap that both matter. A clay tablet **created
+c. 2000 BCE**, **excavated in 1902**, and **read by us in 2026** is three
+different facts; `date:` alone flattens the first two into one and loses
+the excavation entirely. The same shape covers a lost manuscript found in
+an archive, a document declassified decades after it was written, a leak
+that surfaces years later, a photograph rediscovered in an attic — any
+source whose entry into the record is a dated event in its own right.
+
+It is **optional and subject-neutral**: omit it (or write `unknown`) when
+creation and availability effectively coincide — a web page published and
+read the same week has no meaningful `surfaced:`. When the discovery is
+itself a significant event that bears on several topics, it also earns a
+`research/timeline/` entry; `surfaced:` is the lightweight note on the
+record, the timeline entry is the shared, cited fact.
 
 `topics:` is the registry-side half of the join. Without it, answering
 "what did this document feed?" means grepping every topic's shelf. Keep

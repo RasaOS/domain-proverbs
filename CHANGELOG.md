@@ -6,6 +6,25 @@ rolled up into the workspace's aggregated elements changelog (track #2).
 
 ---
 
+## v0.3.0 — 2026-07-20 — SOURCE DISCOVERY DATE
+
+Additive, subject-neutral. One optional frontmatter field on the source
+record — `surfaced:` — closing a real gap in provenance: a source's
+**creation** and its **discovery / re-surfacing** are often separated by a
+long, meaningful span, and the record had a home only for the first
+(`date:`) and for our own access (`retrieved:` / `added:`). A clay tablet
+created c. 2000 BCE, excavated in 1902, and read by us in 2026 is three
+distinct facts; `surfaced:` records the middle one. Optional — omitted when
+creation and availability coincide (a same-week web page). It splits along
+the domain's existing seam: `date:` and `surfaced:` are facts about the
+world (historical); `retrieved:` / `added:` are facts about the research.
+
+- `content/overlay-template/source-record.md` — the `surfaced:` field, marked optional.
+- `content/framework/provenance.md` — new "The three dates of a source" section;
+  the required-fields sentence updated (`surfaced:` joins `tags:` as optional).
+- `bin/check-manifest` + `bin/check-shape` GREEN. `contract_version` unchanged (1.3.0).
+- No new file, no manifest slot; existing overlay-template is directory-mirrored.
+
 ## v0.2.0 — 2026-07-18 — THE OVERLAY REFACTOR
 
 **Breaking in effect, though the version is a minor bump (pre-1.0).**

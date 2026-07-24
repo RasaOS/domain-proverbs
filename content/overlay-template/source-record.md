@@ -6,7 +6,8 @@
 id: src-NNNN                 # TODO next unused id; never changed, never recycled
 title: TODO source title     # human-facing; may be corrected freely
 author: TODO                 # person, org, or `unknown`
-date: TODO                   # YYYY-MM-DD the SOURCE was created/published, or `unknown`
+date: TODO                   # YYYY-MM-DD the SOURCE was created/originated/published, or `unknown`
+surfaced: TODO               # OPTIONAL YYYY-MM-DD it was discovered / excavated / declassified / re-surfaced, when that differs from `date:`; omit or `unknown` otherwise
 kind: TODO                   # primary | secondary | tertiary | personal-communication | dataset | self-authored
 locator: TODO                # URL, DOI, ISBN, @path to a committed copy, or a description
 retrieved: TODO              # YYYY-MM-DD you fetched/read it — mandatory for any URL
