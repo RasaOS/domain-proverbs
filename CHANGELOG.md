@@ -6,6 +6,23 @@ rolled up into the workspace's aggregated elements changelog (track #2).
 
 ---
 
+## v0.4.0 — 2026-10-01 — NATAL REPORT SKILL
+
+Additive. Moves the `natal-report` skill in from the user-level
+`~/.claude/skills/natal-report/` (where it was unversioned and single-host)
+so it is versioned, synced and installed with the element. It is subject
+content, unlike the other four skills, and does not operate on research topics.
+
+- `content/skills/natal-report/SKILL.md` — the house format (16 sections, design tokens,
+  verification checklist). Added the Behavior contract / Process / What NOT to do /
+  Done when sections `bin/check-shape` requires; the body is otherwise unchanged.
+- `content/skills/natal-report/scripts/` — `chart.py` (Swiss Ephemeris, needs
+  `pip3 install pyswisseph`), `wheel.js`, `print.css`. Includes the 2026-08-23
+  pinnacle-age fix (`36 − Life Path`, master Life Path reduced first).
+- `rasa.json` — capability `proverbs.natal-report`; skills note updated.
+- `content/README.md` — skills table.
+- No example reports shipped: they are private gifts about real people.
+
 ## v0.3.0 — 2026-07-20 — SOURCE DISCOVERY DATE
 
 Additive, subject-neutral. One optional frontmatter field on the source

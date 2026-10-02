@@ -54,8 +54,9 @@ ship**, because v0.1.0 shipped all of it and was wrong to.
 | `/ingest` | **passive** — source-first, fans out to many topics | yes |
 | `/sweep` | **longitudinal** — revisit, diff, health-check | yes |
 | `/dossier` | render current state | **read-only** |
+| `/natal-report` | natal chart + numerology reading as an Artifact — **independent of topics** | yes (+ publishes) |
 
-All four operate on topics that **already exist**. There is no
+The first four operate on topics that **already exist**. There is no
 topic-opening skill here — that is `/research new`. The inherited
 `domain-core` Element-mechanics skills (`sync`, `promote`, `whoami`,
 `codify`, `new-skill`, `onboard`, `handoff`, `resume`, `update-docs`) are

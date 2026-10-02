@@ -1,0 +1,40 @@
+/* Print stylesheet for the natal-report skill — see SKILL.md, "Exporting a PDF".
+   Append this to the report HTML inside a full <!doctype html> wrapper with
+   data-theme="light" on <html>, then render with headless Chrome. */
+<style id="printcss">
+@media print{
+  @page{ size: Letter; margin: 11mm 9mm 13mm; }
+  html,body{ background:#f3ead6 !important; }
+  *{ -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }
+  .page{ padding:9mm 11mm !important; min-height:0 !important; font-size:10.2pt; line-height:1.52; }
+  .wrap{ max-width:100% !important; }
+  .prose p, .portrait .p-body p{ font-size:10.4pt !important; line-height:1.55 !important; }
+  h1{ font-size:30pt !important; }
+  .sec-head h2{ font-size:16pt !important; }
+  .portrait .p-body p:first-of-type::first-letter{ font-size:3.1em; }
+  .hero,.decomp,.signband,[style*="box-shadow"]{ box-shadow:none !important; }
+  .sec-head{ break-after:avoid-page; page-break-after:avoid; }
+  h1,h2,h3{ break-after:avoid-page; page-break-after:avoid; }
+  /* short, card-shaped things must stay whole */
+  .card,.plate,.pin,.lsc,.ky,.signband,.hero,.numchip,.kin,.brow,.step,.tradcard{
+    break-inside:avoid-page; page-break-inside:avoid; }
+  /* long prose blocks may split across a page rather than leave one half-empty */
+  .qcard,.mcard,.callout,.bridge,.pn,.kin-group{ break-inside:auto; page-break-inside:auto; }
+  /* stack the tall two-column grids so they pack instead of stranding a row */
+  .mcards,.qgrid{ grid-template-columns:1fr !important; }
+  table,tr,thead,tbody{ break-inside:avoid-page; page-break-inside:avoid; }
+  .tbl{ overflow:visible !important; }
+  p,li{ orphans:3; widows:3; }
+  /* cover page: centre the title block on the sheet */
+  header{ break-after:page; page-break-after:always;
+          min-height:230mm; display:flex; flex-direction:column; justify-content:center; }
+  .chartbox{ max-width:320px !important; }
+  .three,.plates{ grid-template-columns:repeat(3,1fr) !important; gap:10px !important; }
+  .pullneed,.traditions{ grid-template-columns:1fr 1fr !important; gap:12px !important; }
+  .qgrid,.mcards{ gap:12px !important; }
+  .pins{ grid-template-columns:repeat(4,1fr) !important; gap:8px !important; }
+  .ls{ grid-template-columns:1fr 1fr !important; }
+  .hero{ grid-template-columns:1.05fr .95fr !important; }
+  a{ text-decoration:none; color:inherit; }
+}
+</style>
