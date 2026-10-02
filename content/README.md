@@ -54,7 +54,7 @@ ship**, because v0.1.0 shipped all of it and was wrong to.
 | `/ingest` | **passive** — source-first, fans out to many topics | yes |
 | `/sweep` | **longitudinal** — revisit, diff, health-check | yes |
 | `/dossier` | render current state | **read-only** |
-| `/natal-report` | natal chart + numerology reading as an Artifact — **independent of topics** | yes (+ publishes) |
+| `/natal-report` | natal chart + numerology reading as an Artifact — **independent of topics**; the format is a spec (`skills/natal-report/REPORT-SPEC.md`) with a template, a builder and a gate | yes (+ publishes) |
 
 The first four operate on topics that **already exist**. There is no
 topic-opening skill here — that is `/research new`. The inherited

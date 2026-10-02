@@ -1,0 +1,15 @@
+{
+  "_comment": "Copy to the working folder as birth.json and fill in. The subject here is fictional. name = the full name AS ON THE BIRTH CERTIFICATE (middle names count). time = 24h local clock; utc_offset must reflect DST for that date, place and year. Leave time null if unknown — never guess one. pronouns null = 'you' throughout. prepared = the date the reading is made. for/from feed the footer line.",
+  "name": "Avery Quinn Marlow",
+  "date": "1990-06-15",
+  "time": "09:42",
+  "utc_offset": -7,
+  "tz_label": "PDT",
+  "place": "Portland, Oregon",
+  "lat": 45.5152,
+  "lon": -122.6784,
+  "pronouns": null,
+  "prepared": "2026-10-01",
+  "for": "Avery Quinn Marlow",
+  "from": "a friend"
+}

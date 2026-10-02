@@ -6,6 +6,57 @@ rolled up into the workspace's aggregated elements changelog (track #2).
 
 ---
 
+## v0.5.0 — 2026-10-01 — NATAL REPORT FORMALIZED
+
+Additive. v0.4.0 moved the `natal-report` skill in as prose: a sixteen-section
+list, a design paragraph, a verification checklist, and three scripts with one
+real person's birth data hardcoded in two of them. The actual house format lived
+only in a lost HTML file — `print.css` referenced a class vocabulary defined
+nowhere in the repo. v0.5.0 turns the report into a contract with teeth,
+reconstructing the house format from the one shipped PDF (26 pages, 2026-08-23).
+
+- `content/skills/natal-report/REPORT-SPEC.md` — **the contract.** Inputs
+  (`birth.json`), the computed source (`chart.json`, schema `natal-report/chart.v1`),
+  the pipeline and its machine/writer ownership line, the sixteen sections with
+  `data-sec` ids, eyebrows, components and word budgets, the component class
+  vocabulary, the design tokens, writing rules W-1…W-15, conformance rules
+  R1…R17 and the human pass V-1…V-5, the footer, the PDF, and change control.
+  Where SKILL.md and the spec disagree, the spec wins.
+- `templates/report.html` — the house template: full stylesheet (both themes, all
+  tokens), every section scaffolded with `{{UPPER_CASE}}` machine tokens,
+  `{{WRITE: guidance}}` writer slots carrying the budget, and `<!-- @if has_time -->`
+  / `@if masters` conditionals. Verified against the shipped PDF by rendering.
+- `templates/birth.example.json` — the input shape, fictional subject.
+- `scripts/chart.py` — **rewritten.** Takes `birth.json`, writes `chart.json` and the
+  writer's summary. No hardcoded subject. Handles no-birth-time (noon UT, no
+  angles/houses/sect, flagged). Adds what the house format already used but the
+  engine never computed: Vedic psychic/destiny/name planets, the Lo Shu grid, the
+  Kabbalistic path's letter/card/attribution, pinnacle age ranges with the current
+  one marked, personal years with the current one marked, stellia, Neptune/Pluto
+  squares, progressed Moon, and the `wheel` block. Figures regression-checked
+  against the v0.4.0 output: identical.
+- `scripts/build.py` — new. Fills the machine-owned tokens from `chart.json`,
+  resolves the conditionals, refuses to overwrite a draft without `--force`;
+  `--pdf` wraps with `print.css`, forces the light theme, prints with headless
+  Chrome, and refuses an unfilled report.
+- `scripts/check-report.py` — new. The conformance gate: unfilled slots, title,
+  section order and conditionals, Portrait budget, banned phrases, leaked
+  arithmetic/method, exclamation marks/emoji, gendering, stray exact figures,
+  footer, theme tokens, wheel data, machine numbers untouched, kindred years,
+  second person. Exit 0 required before publishing; the human pass still follows.
+- `scripts/wheel.js` — data-driven from `window.NATAL_WHEEL`; no-time charts draw
+  without axes; mattes to `--ground` itself.
+- `scripts/print.css` — class list aligned to the template; table rows break
+  individually with the head repeated; dead classes from the lost draft removed.
+- Two print defects found and fixed while verifying: sign glyphs printed as colour
+  emoji (U+FE0E text-presentation selector now appended); the section-head hairline
+  collapsed under flex in print (grid now).
+- `SKILL.md` — rewritten to carry judgment and process and defer the contract to
+  the spec; process is now the six-step pipeline with the gate in it.
+- `rasa.json` — version, skills note. `content/README.md` — skills table.
+- `bin/check-manifest` + `bin/check-shape` GREEN. `contract_version` unchanged (1.3.0).
+- Still ships zero reports and zero real birth data.
+
 ## v0.4.0 — 2026-10-01 — NATAL REPORT SKILL
 
 Additive. Moves the `natal-report` skill in from the user-level

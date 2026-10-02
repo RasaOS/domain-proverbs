@@ -1,0 +1,458 @@
+<!doctype html>
+<!-- natal-report house template — REPORT-SPEC.md §5 (structure) and §6 (components).
+     build.py fills every UPPER_CASE double-brace token and resolves the @if blocks.
+     The writer fills every WRITE slot and may delete a slot marked optional.
+     check-report.py refuses the report while any double-brace slot remains. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{TITLE}}</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌙</text></svg>">
+<style>
+:root{
+  --ground:#f3ead6; --panel:#ece0c6; --panel-deep:#e3d3b2; --ink:#241c10; --ink-soft:#4a3f2e; --ink-faint:#8a7b63;
+  --brass:#9a6a12; --brass-bright:#b8831a; --star:#3c5a7c; --line:#d8c9a6;
+  --wheel-ring:#b89a5e; --wheel-tick:#c9b283; --wheel-web:#d9c7a1;
+  --serif:"Iowan Old Style",Palatino,"Palatino Linotype","Book Antiqua",Georgia,serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,Menlo,"SF Mono",Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0b1322; --panel:#111b2e; --panel-deep:#172339; --ink:#ece7d7; --ink-soft:#c9c2ae; --ink-faint:#8d8873;
+  --brass:#d9b364; --brass-bright:#e8c87c; --star:#8ba7cc; --line:#263650;
+  --wheel-ring:#8a7a52; --wheel-tick:#5c5a4a; --wheel-web:#2c3a52;
+}}
+:root[data-theme="dark"]{
+  --ground:#0b1322; --panel:#111b2e; --panel-deep:#172339; --ink:#ece7d7; --ink-soft:#c9c2ae; --ink-faint:#8d8873;
+  --brass:#d9b364; --brass-bright:#e8c87c; --star:#8ba7cc; --line:#263650;
+  --wheel-ring:#8a7a52; --wheel-tick:#5c5a4a; --wheel-web:#2c3a52;
+}
+*{box-sizing:border-box}
+html{background:var(--ground)}
+body{margin:0}
+.page{background:var(--ground);color:var(--ink);font-family:var(--sans);line-height:1.6;padding:56px 20px 80px;-webkit-font-smoothing:antialiased}
+.wrap{max-width:940px;margin:0 auto}
+a{color:inherit}
+
+/* header + hero */
+.eyebrow,.brow,.lab,.tag,.chip,.now-chip,.bridge-chip,.sub{font-family:var(--mono);text-transform:uppercase;letter-spacing:.22em}
+.eyebrow{font-size:11px;font-weight:500;color:var(--brass)}
+h1{font:600 clamp(40px,6vw,64px)/1.05 var(--serif);margin:14px 0 10px;letter-spacing:-.01em}
+.dateline{font:13px/1.5 var(--mono);color:var(--ink-soft)} .dateline b{color:var(--ink);font-weight:600}
+.hero{display:grid;grid-template-columns:1.05fr .95fr;gap:28px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px;margin-top:34px}
+.lede p{font:400 20px/1.5 var(--serif);margin:0}
+.lede em{color:var(--brass)}
+.chartbox{background:var(--ground);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:inset 0 2px 10px rgba(0,0,0,.07)}
+.chartbox canvas{display:block;width:100%}
+
+/* sections */
+section{margin-top:64px}
+.sec-head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;margin-bottom:22px}
+.sec-head h2{font:600 30px/1.1 var(--serif);margin:0;white-space:nowrap}
+.sec-head .rule{height:1px;min-width:24px;background:var(--line)}
+.brow{font-size:11px;font-weight:500;color:var(--ink-faint);white-space:nowrap}
+.prose p{font-size:16.5px;margin:0 0 18px;max-width:74ch}
+.prose p:last-child{margin-bottom:0}
+.prose em,.callout em,.lsc em,.mcard em,.synth em,.match em{color:var(--brass);font-family:var(--serif);font-size:1.04em}
+.prose strong{font-family:var(--serif);font-weight:600;font-size:1.03em}
+
+/* the portrait */
+.portrait .p-body p{font:400 17.5px/1.65 var(--serif);max-width:none}
+.portrait .p-body p:first-of-type::first-letter{font:600 4.2em/.8 var(--serif);float:left;color:var(--brass);margin:6px 10px 0 0}
+.p-close{text-align:center;font:italic 16px/1.6 var(--serif);max-width:52ch;margin:30px auto 0}
+
+/* cards */
+.lab{font-size:11px;font-weight:600;color:var(--brass);margin:0 0 10px}
+.lab span{color:var(--ink-faint);font-weight:500}
+h3{font:600 24px/1.15 var(--serif);margin:0 0 10px}
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 20px}
+.card .glyph{font:500 26px/1 var(--serif);color:var(--brass);margin-bottom:14px}
+.epi{font:13px/1.45 var(--mono);color:var(--star);margin:-2px 0 12px}
+.card p{font-size:15px;margin:0;color:var(--ink-soft)}
+
+.signband{display:flex;gap:22px;align-items:center;background:linear-gradient(180deg,var(--panel),var(--panel-deep));border:1.5px solid var(--brass);border-radius:14px;padding:22px 26px;margin-bottom:24px}
+.signband .glyph{font:500 44px/1 var(--serif);color:var(--brass)}
+.signband h3{font-size:28px;margin:0}
+.signband h3 b{color:var(--brass);font-weight:600}
+.signband .motto{font:italic 15px/1.4 var(--serif);color:var(--ink-soft);margin-top:6px}
+
+.callout{background:var(--panel);border-left:3px solid var(--brass);border-radius:0 14px 14px 0;padding:22px 26px;margin:26px 0}
+.callout h3{font-size:22px}
+.callout p{margin:0 0 12px;font-size:15.5px;color:var(--ink-soft)}
+.callout p:last-child{margin:0}
+
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.ky{background:var(--ground);border:1px solid var(--brass);border-radius:12px;padding:16px 18px}
+.ky.shadow{border-color:var(--star)} .ky.shadow .lab{color:var(--star)}
+.ky .lab{margin-bottom:8px}
+.ky p{font-size:14px;margin:0;color:var(--ink-soft)}
+
+/* the six numbers */
+.plates{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.plate{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 20px 24px}
+.plate.master{border:1.5px solid var(--brass)}
+.plate .num,.pin .num{position:absolute;top:14px;right:16px;font:500 13px var(--mono);color:var(--ink-faint)}
+.plate .lab{color:var(--ink-faint);font-weight:500;margin-bottom:8px}
+.plate h3{font-size:22px}
+.plate p{font-size:14.5px;margin:0;color:var(--ink-soft)}
+.chip{display:inline-block;font-size:10px;font-weight:600;color:var(--brass);border:1px solid var(--brass);border-radius:999px;padding:5px 9px;margin-top:14px}
+.plate .chip{position:absolute;right:14px;bottom:14px;margin:0}
+
+/* master numbers */
+.mcards{display:grid;gap:18px}
+.mcard{background:var(--panel);border:1.5px solid var(--brass);border-radius:16px;padding:24px 26px}
+.mcard .head{display:flex;gap:16px;align-items:baseline}
+.mcard .bignum{font:600 54px/1 var(--serif);color:var(--brass)}
+.mcard h3{font-size:26px;margin:0}
+.mcard .sub{font-size:11px;font-weight:500;color:var(--ink-faint);margin-top:6px;letter-spacing:.18em}
+.mcard>p{font-size:15.5px;color:var(--ink-soft);margin:14px 0 0}
+.mcard .pair{margin-top:18px}
+.bridge{position:relative;background:var(--panel);border:1.5px dashed var(--brass);border-radius:16px;padding:28px 26px 22px;margin-top:24px}
+.bridge-chip{position:absolute;top:-11px;left:22px;background:var(--brass);color:var(--ground);font-size:10px;font-weight:600;letter-spacing:.18em;border-radius:999px;padding:6px 10px}
+.bridge p{font-size:15.5px;color:var(--ink-soft);margin:0 0 12px}
+.bridge p:last-child{margin:0}
+
+/* traditions */
+.traditions{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+.tradcard{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px 22px}
+.tradcard h3{font-size:22px;display:flex;gap:12px;align-items:baseline;flex-wrap:wrap}
+.tag{font-size:10px;font-weight:500;color:var(--brass);letter-spacing:.18em}
+.tradcard p{font-size:14.5px;color:var(--ink-soft);margin:0}
+.synth{background:var(--panel);border:1.5px solid var(--brass);border-radius:14px;padding:22px 24px;margin-top:16px}
+.synth p{font-size:15px;color:var(--ink-soft);margin:0}
+
+/* life arc */
+.ls{display:grid;gap:16px}
+.lsc{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px}
+.lsc.purpose{border:1.5px solid var(--brass)}
+.lsc .lab{margin-bottom:8px}
+.lsc p{font-size:15.5px;color:var(--ink-soft);margin:0}
+
+/* road ahead */
+.pins{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.pin{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:24px 18px 20px}
+.pin.now{border:1.5px solid var(--brass)} .pin.now h3{color:var(--brass)}
+.pin h3{font-size:22px;margin-bottom:6px}
+.pin .range{font:12px var(--mono);color:var(--ink-faint);margin-bottom:10px}
+.pin p{font-size:14px;color:var(--ink-soft);margin:0}
+.now-chip{position:absolute;top:-10px;left:16px;background:var(--brass);color:var(--ground);font-size:10px;font-weight:600;letter-spacing:.18em;border-radius:999px;padding:5px 9px}
+.sub-head{display:flex;gap:12px;align-items:baseline;margin:28px 0 12px}
+.sub-head .lab{margin:0} .sub-head span{font-size:14.5px;color:var(--ink-soft)}
+.tbl{border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tbl table{width:100%;border-collapse:collapse}
+.tbl td,.tbl th{padding:16px 20px;text-align:left;vertical-align:top;border-top:1px solid var(--line);font-size:15px}
+.tbl th{font:500 10px var(--mono);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);background:var(--panel);border-top:0}
+.tbl tbody tr:first-child td{border-top:0}
+.tbl tbody tr:nth-child(odd) td{background:var(--panel)}
+.tbl td.k{font:13px var(--mono);color:var(--ink-soft);white-space:nowrap;width:150px}
+.tbl td b{color:var(--brass);font-family:var(--serif);font-size:1.05em}
+.tbl td.pos{font:600 13px var(--mono);color:var(--brass)}
+.tbl td.g{font:18px/1 var(--serif);color:var(--brass);width:48px}
+
+/* love */
+.pullneed{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:10px 0 18px}
+.need,.pull{background:var(--panel);border-radius:14px;padding:22px 24px}
+.need{border:1.5px solid var(--star)} .need .lab{color:var(--star)}
+.pull{border:1.5px solid var(--brass)}
+.need p,.pull p{font-size:15px;color:var(--ink-soft);margin:0}
+.mline{text-align:center;font:italic 16px/1.5 var(--serif);color:var(--brass);margin:0 0 26px}
+.match{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:16px}
+.match p{font-size:15px;color:var(--ink-soft);margin:0}
+
+/* kindred */
+.kin-group{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px 24px;margin-bottom:18px}
+.kin-group h3 b{color:var(--brass);font-weight:600}
+.kin-group>p{font-size:15px;color:var(--ink-soft);margin:0 0 14px}
+.kins{display:flex;flex-wrap:wrap;gap:8px}
+.kin{background:var(--ground);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+.kin b{display:block;font:600 16px/1.2 var(--serif)}
+.kin span{font:11px var(--mono);color:var(--ink-faint)}
+.kin.hi{border-color:var(--brass);background:var(--panel-deep)} .kin.hi b{color:var(--brass)}
+.kin-note,.mono-line{font:12.5px/1.65 var(--mono);color:var(--ink-faint);margin:14px 0 0}
+.kin-note b{color:var(--ink-soft)}
+
+footer{margin-top:72px;padding-top:24px;border-top:1px solid var(--line);font:12.5px/1.75 var(--mono);color:var(--ink-faint)}
+footer p{margin:0 0 12px;max-width:92ch}
+
+@media (max-width:760px){
+  .hero,.three,.plates,.pair,.traditions,.pullneed{grid-template-columns:1fr}
+  .pins{grid-template-columns:1fr 1fr}
+  .sec-head{grid-template-columns:1fr;gap:8px} .sec-head .rule{display:none} .sec-head h2{white-space:normal}
+  .page{padding:32px 14px 60px}
+}
+</style>
+</head>
+<body class="page">
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">Natal Chart &amp; Numerology · A Reading</div>
+  <h1>{{NAME}}</h1>
+  <div class="dateline"><b>{{DATE_LONG}}</b> · {{TIME_LABEL}} · {{PLACE}}</div>
+  <div class="hero">
+    <div class="lede"><p>{{WRITE: the lede — 60 to 90 words, one paragraph, the person in a breath, the circumstance of their arrival read as meaning. At most one phrase in em tags. Must stand without the chart.}}</p></div>
+    <div class="chartbox"><canvas id="wheel" aria-label="Natal chart wheel"></canvas></div>
+  </div>
+</header>
+
+<section data-sec="portrait" class="portrait">
+  <div class="sec-head"><h2>The Portrait</h2><div class="rule"></div><div class="brow">Who you are, in full</div></div>
+  <div class="prose p-body">
+{{WRITE: THE PORTRAIT — 1100 to 1300 words in six to nine p tags. The centerpiece. Must stand alone for a reader who never learns any astrology. Movement: the arrival, what people meet first and its exact cost, the private center almost no one sees, the contradiction carried the whole life, the permeability or its opposite, the thesis of the life, where it stands now, the turn ahead. No placement named without the sentence going on to its meaning. At most one bold sentence. Brass italics via em, sparingly.}}
+  </div>
+  <p class="p-close">{{WRITE: the closing italic lines — two to four short lines separated by br tags, the whole reading in a breath}}</p>
+</section>
+
+<section data-sec="big-three">
+  <div class="sec-head"><h2>The Big Three</h2><div class="rule"></div><div class="brow">Sun · Rising · Moon</div></div>
+  <div class="three">
+    <div class="card">
+      <div class="glyph">{{SUN_GLYPH}}</div>
+      <div class="lab">Sun <span>· core self</span></div>
+      <h3>{{SUN_SIGN}}{{SUN_HOUSE_LABEL}}</h3>
+      <div class="epi">{{WRITE: epithet, two short phrases at most, lower case}}</div>
+      <p>{{WRITE: 110 to 160 words — what it feels like from inside, what it cost, one concrete instruction}}</p>
+    </div>
+    <!-- @if has_time -->
+    <div class="card">
+      <div class="glyph">{{RISING_GLYPH}}</div>
+      <div class="lab">Rising <span>· the door</span></div>
+      <h3>{{RISING_SIGN}}</h3>
+      <div class="epi">{{WRITE: epithet, two short phrases at most, lower case}}</div>
+      <p>{{WRITE: 110 to 160 words — the door people meet first, what it gets mistaken for, the small hard thing to say early}}</p>
+    </div>
+    <!-- @endif -->
+    <!-- @if no_time -->
+    <div class="card">
+      <div class="glyph">—</div>
+      <div class="lab">Rising <span>· the door</span></div>
+      <h3>Not known</h3>
+      <div class="epi">no birth time, no horizon</div>
+      <p>{{WRITE: 60 to 90 words — say plainly that without a birth time there is no rising sign and no houses, so roughly half of what a chart can say is missing here. Say what that leaves out. Offer that the reading can be redone if the time turns up. Do not guess one.}}</p>
+    </div>
+    <!-- @endif -->
+    <div class="card">
+      <div class="glyph">{{MOON_GLYPH}}</div>
+      <div class="lab">Moon <span>· inner weather</span></div>
+      <h3>{{MOON_SIGN}}{{MOON_HOUSE_LABEL}}</h3>
+      <div class="epi">{{WRITE: epithet, two short phrases at most, lower case}}</div>
+      <p>{{WRITE: 110 to 160 words — how feeling arrives and shows, whose weather they carry, the plain question to practice}}</p>
+    </div>
+  </div>
+</section>
+
+<section data-sec="gravity">
+  <div class="sec-head"><h2>{{WRITE: the section title naming the MEANING of where the chart's weight sits, e.g. The House of Home — never the technique}}</h2><div class="rule"></div><div class="brow">{{WRITE: eyebrow, three to five words, e.g. Where your weight sits}}</div></div>
+  <div class="prose">
+{{WRITE: 550 to 800 words in five to seven p tags on the chart's center of gravity — a crowded house or sign, or the dominant configuration if there is none. Lived texture: where the real life happens, what began before they had any say, the fusion at the center, the live wire under it, the fog or the edge, and why these are one place and not three. End by being honest about the weight of it.}}
+  </div>
+</section>
+
+<section data-sec="sun">
+  <div class="sec-head"><h2>Your Sun in Depth</h2><div class="rule"></div><div class="brow">The core self, unpacked</div></div>
+  <div class="signband">
+    <div class="glyph">{{SUN_GLYPH}}</div>
+    <div><h3><b>{{SUN_SIGN}}</b> — {{WRITE: the sign's epithet for this person, three to five words, Title Case}}</h3><div class="motto">“{{WRITE: a one-line motto in the sign's own voice}}”</div></div>
+  </div>
+  <div class="prose">
+{{WRITE: 350 to 500 words in four to six p tags — what moves them at the start of anything, the early competence or its absence and what it cost, the sign's traditional image read as their life, what they cannot do, the one real consolation the tradition offers}}
+  </div>
+  <div class="callout">
+    <h3>{{WRITE: a title for the face of the sign they were born under, as meaning — e.g. The strictest face of the sign, and you stand at its edge}}</h3>
+    <p>{{WRITE: 120 to 180 words on which third of the sign the Sun sits in and the house it lives in, as lived texture — without the words decan or house system}}</p>
+  </div>
+  <div class="pair">
+    <div class="ky"><div class="lab">At its best</div><p>{{WRITE: 70 to 110 words}}</p></div>
+    <div class="ky shadow"><div class="lab">The shadow</div><p>{{WRITE: 70 to 110 words — honest, never cruel}}</p></div>
+  </div>
+</section>
+
+<!-- @if has_time -->
+<section data-sec="world">
+  <div class="sec-head"><h2>How You Meet the World</h2><div class="rule"></div><div class="brow">The door, and who comes through it</div></div>
+  <div class="prose">
+{{WRITE: 350 to 550 words in four to six p tags — the rising sign as how they perceive and are perceived, the far edge of the chart as who arrives and what gets outsourced to them, the high point as the reputation they will actually build, the private floor beneath, and the chart ruler's piece of plain luck. Angles as relational meaning only, never named as technique.}}
+  </div>
+</section>
+<!-- @endif -->
+
+<section data-sec="numbers">
+  <div class="sec-head"><h2>The Six Numbers</h2><div class="rule"></div><div class="brow">What they say about you</div></div>
+  <div class="plates">
+    <div class="plate{{MASTER_CLASS_LIFE_PATH}}"><div class="num">{{N_LIFE_PATH}}</div><div class="lab">Life Path</div><h3>{{WRITE: epithet, two to five words, Title Case}}</h3><p>{{WRITE: 80 to 120 words — meaning, the trap, no derivation}}</p>{{MASTER_CHIP_LIFE_PATH}}</div>
+    <div class="plate{{MASTER_CLASS_EXPRESSION}}"><div class="num">{{N_EXPRESSION}}</div><div class="lab">Expression</div><h3>{{WRITE: epithet}}</h3><p>{{WRITE: 80 to 120 words}}</p>{{MASTER_CHIP_EXPRESSION}}</div>
+    <div class="plate{{MASTER_CLASS_SOUL_URGE}}"><div class="num">{{N_SOUL_URGE}}</div><div class="lab">Soul Urge</div><h3>{{WRITE: epithet}}</h3><p>{{WRITE: 80 to 120 words}}</p>{{MASTER_CHIP_SOUL_URGE}}</div>
+    <div class="plate{{MASTER_CLASS_PERSONALITY}}"><div class="num">{{N_PERSONALITY}}</div><div class="lab">Personality</div><h3>{{WRITE: epithet}}</h3><p>{{WRITE: 80 to 120 words}}</p>{{MASTER_CHIP_PERSONALITY}}</div>
+    <div class="plate{{MASTER_CLASS_BIRTHDAY}}"><div class="num">{{N_BIRTHDAY}}</div><div class="lab">Birthday</div><h3>{{WRITE: epithet}}</h3><p>{{WRITE: 80 to 120 words}}</p>{{MASTER_CHIP_BIRTHDAY}}</div>
+    <div class="plate{{MASTER_CLASS_MATURITY}}"><div class="num">{{N_MATURITY}}</div><div class="lab">Maturity</div><h3>{{WRITE: epithet}}</h3><p>{{WRITE: 80 to 120 words — the second half of the life bends toward this}}</p>{{MASTER_CHIP_MATURITY}}</div>
+  </div>
+  <div class="callout">
+    <h3>{{WRITE: a title for what the name failed to supply, e.g. And the two things your name never handed you — or, if nothing is absent, for what it over-supplies}}</h3>
+    <p>{{WRITE: 120 to 200 words on the absent numbers as an assignment, not a verdict, and where those capacities were supplied instead, and late}}</p>
+  </div>
+</section>
+
+<!-- @if masters -->
+<section data-sec="masters">
+  <div class="sec-head"><h2>{{WRITE: a section title naming the master number's meaning for this person, e.g. The Live Wire}}</h2><div class="rule"></div><div class="brow">{{WRITE: eyebrow, e.g. Running at higher voltage}}</div></div>
+  <div class="prose"><p>{{WRITE: 150 to 220 words — the lived symptom first, the reception and its exactly proportional cost, one italic reframe in em tags}}</p></div>
+  <div class="mcards">
+    <div class="mcard">
+      <div class="head"><div class="bignum">{{WRITE: the master number itself}}</div><div><h3>{{WRITE: its name for this person}}</h3><div class="sub">{{WRITE: where it came from, as meaning — e.g. The charge came with the name, not from you}}</div></div></div>
+      <p>{{WRITE: 180 to 260 words — what it looks like day to day, what it taught them wrongly, where in the arc it returns}}</p>
+      <div class="pair">
+        <div class="ky"><div class="lab">At its best</div><p>{{WRITE: 60 to 100 words}}</p></div>
+        <div class="ky shadow"><div class="lab">The cost</div><p>{{WRITE: 60 to 100 words}}</p></div>
+      </div>
+    </div>
+    {{WRITE: optional — a second mcard, same shape, only if a second master number is genuinely present and worth its own card, e.g. an all-digit 33 offered and declined. Otherwise delete this slot.}}
+  </div>
+  <div class="bridge">
+    <div class="bridge-chip">The one to keep</div>
+    <h3>{{WRITE: the strongest convergence as a sentence — e.g. Two systems, no shared inputs, the same sentence about you}}</h3>
+    <p>{{WRITE: 150 to 220 words — only a convergence whose inputs do not overlap: a number from the letters of the name against a contact measured from the sky. Say what follows from it practically. If no such convergence exists, delete the whole bridge div.}}</p>
+  </div>
+</section>
+<!-- @endif -->
+
+<section data-sec="nodes">
+  <div class="sec-head"><h2>What You Are Here to Learn</h2><div class="rule"></div><div class="brow">The growth axis</div></div>
+  <div class="prose">
+{{WRITE: 500 to 750 words in six to eight p tags — the groove worn so smooth it does not feel like a choice, the bargain underneath it said out loud, what else lives in that closed room, the direction that actually grows them and why it is not less but relocated, the reframe that is the important thing in this reading, what it looks like on a Tuesday, and the recent or coming reset on this axis if there is one. Usually the most useful section. Get the direction the right way round.}}
+  </div>
+</section>
+
+<section data-sec="work">
+  <div class="sec-head"><h2>How You Work</h2><div class="rule"></div><div class="brow">Vocation · Money · Worth</div></div>
+  <div class="prose">
+{{WRITE: 450 to 700 words in five to seven p tags — the promise at the high point of the chart, the fight wired into it, how the mind is built and what to change about the release valve, money as it actually feels, growth through other people's depths and the asymmetry in receiving, when authority arrives, and one closing sentence describing a good working life}}
+  </div>
+</section>
+
+<section data-sec="wounds">
+  <div class="sec-head"><h2>What Wounds You</h2><div class="rule"></div><div class="brow">And what actually helps</div></div>
+  <div class="prose">
+{{WRITE: 450 to 700 words in six to eight p tags — the oldest sore spot and where it sits, the classic shape it takes, the fault lines between feeling and structure or feeling and fog, what they do under pressure and how it lands, a humility paid for, what actually helps being smaller and more embarrassing than wanted, and the second pass around fifty. The honest one.}}
+  </div>
+</section>
+
+<section data-sec="traditions">
+  <div class="sec-head"><h2>The Other Traditions</h2><div class="rule"></div><div class="brow">Four more readings of the same person</div></div>
+  <div class="prose"><p>{{WRITE: 40 to 70 words — numerology is several traditions worked out on different continents by people who never met, and run through four of the others they describe someone recognizable, sometimes agreeing, once disagreeing usefully}}</p></div>
+  <div class="traditions">
+    <div class="tradcard"><h3>The Babylonian reading <span class="tag">Chaldean</span></h3><p>{{WRITE: 80 to 120 words — meaning only, from the sound-valued name number}}</p></div>
+    <div class="tradcard"><h3>The Indian reading <span class="tag">Vedic</span></h3><p>{{WRITE: 80 to 120 words — the day, the life and the name each handed to a planet, as meaning}}</p></div>
+    <div class="tradcard"><h3>The Hebrew reading <span class="tag">Kabbalistic</span></h3><p>{{WRITE: 80 to 120 words — the path's letter, its card and its image, as meaning}}</p></div>
+    <div class="tradcard"><h3>The Chinese reading <span class="tag">Lo Shu</span></h3><p>{{WRITE: 80 to 120 words — what the grid repeats and what it withholds, read as instruction}}</p></div>
+  </div>
+  <div class="synth">
+    <h3>Where they land together</h3>
+    <p>{{WRITE: 150 to 220 words — where independent systems describe the same person. State weak convergences as weak: a path landing on a sign already in the chart is one chance in twelve. Name the honest dissent too.}}</p>
+  </div>
+</section>
+
+<section data-sec="arc">
+  <div class="sec-head"><h2>Life Arc</h2><div class="rule"></div><div class="brow">Been · Are · Going</div></div>
+  <div class="ls">
+    <div class="lsc"><div class="lab">Where you've been</div><h3>{{WRITE: a title for the previous chapter}}</h3><p>{{WRITE: 130 to 200 words — the previous chapter as lived, and the reckoning around twenty-nine if it has happened}}</p></div>
+    <div class="lsc"><div class="lab">Where you are <span>· {{PREPARED_YEAR}}</span></div><h3>{{WRITE: a title for this year}}</h3><p>{{WRITE: 130 to 200 words — this year's number as it actually feels, plus any recent return or reset, as mood first}}</p></div>
+    <div class="lsc"><div class="lab">Where you're going</div><h3>{{WRITE: a title for the next year or two}}</h3><p>{{WRITE: 130 to 200 words — the next year or two and the next real threshold, and what to let be}}</p></div>
+    <div class="lsc purpose"><div class="lab">Your final purpose</div><h3>{{WRITE: a title for what comes good last}}</h3><p>{{WRITE: 120 to 180 words — the maturity number and the last chapter as the thing that arrives at the end, not as the problem it always was but as the point}}</p></div>
+  </div>
+</section>
+
+<section data-sec="road">
+  <div class="sec-head"><h2>The Road Ahead</h2><div class="rule"></div><div class="brow">The four chapters</div></div>
+  <div class="pins">
+    <div class="pin{{PIN_1_CLASS}}">{{PIN_1_CHIP}}<div class="num">{{PIN_1_NUM}}</div><h3>{{WRITE: chapter name, Title Case}}</h3><div class="range">{{PIN_1_RANGE}}</div><p>{{WRITE: 50 to 80 words}}</p></div>
+    <div class="pin{{PIN_2_CLASS}}">{{PIN_2_CHIP}}<div class="num">{{PIN_2_NUM}}</div><h3>{{WRITE: chapter name}}</h3><div class="range">{{PIN_2_RANGE}}</div><p>{{WRITE: 50 to 80 words}}</p></div>
+    <div class="pin{{PIN_3_CLASS}}">{{PIN_3_CHIP}}<div class="num">{{PIN_3_NUM}}</div><h3>{{WRITE: chapter name}}</h3><div class="range">{{PIN_3_RANGE}}</div><p>{{WRITE: 50 to 80 words}}</p></div>
+    <div class="pin{{PIN_4_CLASS}}">{{PIN_4_CHIP}}<div class="num">{{PIN_4_NUM}}</div><h3>{{WRITE: chapter name}}</h3><div class="range">{{PIN_4_RANGE}}</div><p>{{WRITE: 50 to 80 words — the long payoff}}</p></div>
+  </div>
+  <div class="callout">
+    <h3>{{WRITE: a title for the next genuine threshold, with the age in words — e.g. The turn, at thirty-nine}}</h3>
+    <p>{{WRITE: 150 to 220 words — when it comes, what kind of doorway it is for this person, what to resist for one season, what to let the first thing on the other side be}}</p>
+  </div>
+  <div class="sub-head"><div class="lab">Further out</div><span>thresholds worth knowing about</span></div>
+  <div class="tbl"><table><tbody>
+{{WRITE: three to six rows, each tr with td class k holding YEAR · AGE and a td holding one or two sentences — real sky thresholds only, from chart.json timing: the disillusionment passage, the midlife turn, the second reckoning with structure, the healing gate, the elder threshold. Lead the loud ones with a b tag. No method.}}
+  </tbody></table></div>
+</section>
+
+<section data-sec="love">
+  <div class="sec-head"><h2>Love &amp; Matches</h2><div class="rule"></div><div class="brow">Need · Pull · Repair</div></div>
+  <div class="prose">
+{{WRITE: 300 to 450 words in three or four p tags — the two appetites and that neither is a phase, who arrives and how, the harder reading that the heat is their own, and the genuine good fortune in the chart}}
+  </div>
+  <div class="pullneed">
+    <div class="need"><div class="lab">What you need</div><h3>{{WRITE: a title}}</h3><p>{{WRITE: 90 to 130 words — need, from the Moon and from what they find beautiful}}</p></div>
+    <div class="pull"><div class="lab">What you're drawn to</div><h3>{{WRITE: a title}}</h3><p>{{WRITE: 90 to 130 words — pull, from what arrives at the far edge of the chart}}</p></div>
+  </div>
+  <p class="mline">{{WRITE: one italic line holding need and pull together — the error and the work}}</p>
+  <div class="match"><div class="lab">Best matches</div><h3>{{WRITE: a title describing a person, not a sign}}</h3><p>{{WRITE: 130 to 200 words — the right person, concretely, and why it will feel dull for a year}}</p></div>
+  <div class="match"><div class="lab">Higher friction</div><h3>{{WRITE: a title}}</h3><p>{{WRITE: 110 to 170 words — who reads as the reward and is the trap, and the mirror case}}</p></div>
+  <div class="callout"><h3>Your own contribution to the difficulty</h3><p>{{WRITE: 130 to 200 words — what they do, plainly, from the first small absorbed request to the account opened in the other person's name}}</p></div>
+  <div class="callout"><h3>What actually repairs it</h3><p>{{WRITE: 120 to 180 words — two or three concrete moves, each opened in a strong tag}}</p></div>
+</section>
+
+<section data-sec="kindred">
+  <div class="sec-head"><h2>Kindred Spirits</h2><div class="rule"></div><div class="brow">Good company on the same road</div></div>
+  <div class="prose"><p>{{WRITE: 40 to 60 words — other people have stood inside these same patterns, nothing here is influence or destiny, it can be steadying to see who else was working in them}}</p></div>
+  <div class="kin-group">
+    <h3>Born on the very same day — <b>{{DAY_MONTH}}</b></h3>
+    <p>{{WRITE: one or two sentences on what people born that day share}}</p>
+    <div class="kins">
+{{WRITE: six to ten chips, each: div class kin, then b Name, then span role · birth year. Every date verified against a published source. Mark the one or two closest relatives with class kin hi.}}
+    </div>
+    <p class="kin-note">{{WRITE: optional mono note naming the closest relatives here and why — open with a b tag. Delete the whole p if none.}}</p>
+  </div>
+  <div class="kin-group">
+    <h3>The same road — <b>{{WRITE: the Life Path's epithet, lower case}}</b></h3>
+    <p>{{WRITE: a sentence or two}}</p>
+    <div class="kins">
+{{WRITE: eight to fourteen chips sharing the Life Path, dates verified}}
+    </div>
+    <p class="kin-note">{{WRITE: optional note — delete the p if none}}</p>
+  </div>
+  <div class="kin-group">
+    <h3>The same sign — <b>{{SUN_SIGN}}</b></h3>
+    <p>{{WRITE: a sentence or two}}</p>
+    <div class="kins">
+{{WRITE: ten to twenty chips sharing the Sun sign}}
+    </div>
+    <p class="kin-note">{{WRITE: optional note — delete the p if none}}</p>
+  </div>
+  <div class="kin-group">
+    <h3>The same gift — <b>{{WRITE: the Birthday number's epithet, lower case}}</b></h3>
+    <p>{{WRITE: a sentence or two}}</p>
+    <div class="kins">
+{{WRITE: five to ten chips sharing the Birthday number}}
+    </div>
+    <p class="kin-note">{{WRITE: optional note — delete the p if none}}</p>
+  </div>
+  <p class="mono-line">Sharing a pattern is kinship of shape, not of fate. It tells you something about the room you are working in, and nothing whatsoever about what you will make of it.</p>
+</section>
+
+<section data-sec="chart">
+  <div class="sec-head"><h2>The Chart Itself</h2><div class="rule"></div><div class="brow">For the curious</div></div>
+  <div class="prose"><p>None of the reading above requires this. It is here in case you ever want to look something up, or hand it to someone who reads charts.</p></div>
+  <div class="tbl"><table>
+    <thead><tr><th></th><th>Body</th><th>Position</th><th>House</th></tr></thead>
+    <tbody>
+{{POSITIONS_ROWS}}
+    </tbody>
+  </table></div>
+</section>
+
+<footer>
+  <p>{{FOOTER_DATA}} Every figure was independently rechecked; where methods disagreed, the mainstream reading was used.</p>
+  <p>Astrology and numerology are symbolic traditions, not predictive instruments. The arithmetic is exact; what it is taken to mean is a matter of a long human tradition and of belief. Nothing here forecasts an event. Read it as a portrait, not a forecast — and keep the parts that are useful.</p>
+  <p>Prepared {{PREPARED_LONG}} · for {{FOR}}{{FROM_LINE}}</p>
+</footer>
+
+</div>
+{{WHEEL_SCRIPT}}
+</body>
+</html>
